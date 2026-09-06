@@ -114,7 +114,12 @@ h1, .brand {
 /* Done */
 
 .hero {
-    padding: 4.5rem 0 5rem;
+    padding: calc(4.5rem + 4.5rem) 0 5rem;
+    background-image: url('/static/img/ceramics.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .hero-grid {
