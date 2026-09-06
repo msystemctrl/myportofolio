@@ -581,6 +581,11 @@ h1, .brand {
     color: var(--text-muted);
     font-size: 0.85rem;
     border-top: 1px solid var(--line); 
+    background-color: var(--ink);
+}
+
+.site-footer p {
+    color: var(--paper-raised);
 }
 
 @media (max-width: 600px) {
