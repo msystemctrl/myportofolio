@@ -5,13 +5,16 @@
 }
 
 :root {
-    --ink: #1c1917;
-    --paper: #faf6f0;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
-    --line: #e3d9c9;
-    --text-muted: #6b6459;
+    --ink: #293379;           /* Untuk teks utama supaya lebih tegas & kontras di atas cream */
+    --paper: #faf6f0;        
+    --accent: #ee7302;        /* Untuk aksen utama seperti hover, tombol, marker aktif */
+    --accent-dark: #b81817;   /* Untuk kicker, tanggal, border card */
+    --line: #e3d9c9;          
+    --text-muted: #6b6459;    
     --radius: 4px;
+    --paper-raised: #f2ebe0;  
+    --accent-soft: rgba(238, 115, 2, 0.16); 
+    --shadow: 0 12px 28px rgba(28, 25, 23, 0.08);
 }
 
 body {
