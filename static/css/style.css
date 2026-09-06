@@ -84,18 +84,21 @@ h1, .brand {
     grid-area: details;
 }
 
+/* Information systems · University of Indonesia */
 .hero-kicker {
     font-size: 0.85rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--accent-dark);
+    color: var(--text-muted);
     font-weight: 700;
     margin-bottom: 0.75rem;
 }
 
+/* Marsya Rizka Aulia */
 .hero-identity h1 {
     font-size: clamp(3rem, 7vw, 5rem);
     line-height: 0.95;
+    color: var(--ink);
 }
 
 .bio {
@@ -128,6 +131,7 @@ h1, .brand {
     flex-wrap: wrap;
 }
 
+/* Ikon Git, LinkedIn, dan Gmail */
 .social-link {
     display: inline-block;
     font-size: 0.85rem;
@@ -142,6 +146,7 @@ h1, .brand {
 
 .social-link:hover {
     background-color: var(--accent);
+    fill: var(--accent) !important;
 }
 
 .hero-photo {
