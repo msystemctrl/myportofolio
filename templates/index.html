@@ -11,6 +11,11 @@
     <link rel="icon" href="/static/img/M favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <audio id="background-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <header class="site-header">
         <div class="container">
             <a href="#profile" class="brand">
@@ -221,5 +226,29 @@
             <p>&copy; 2026 Marsya Rizka Aulia. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
+
+    <button id="music-button" type="button">
+        🎵 Play Music
+    </button>
+
+    <script>
+        const music = document.getElementById("background-music");
+        const musicButton = document.getElementById("music-button");
+
+        musicButton.addEventListener("click", function () {
+            if (music.paused) {
+                music.play()
+                    .then(() => {
+                        musicButton.textContent = "🔇 Pause Music";
+                    })
+                    .catch((error) => {
+                        console.log("Music could not be played:", error);
+                    });
+            } else {
+                music.pause();
+                musicButton.textContent = "🎵 Play Music";
+            }
+        });
+    </script>
 </body>
 </html>

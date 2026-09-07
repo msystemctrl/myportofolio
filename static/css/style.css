@@ -632,3 +632,30 @@ h1, .brand {
     }
 }
 /* Gallery : Done */
+
+/* Audio : Start */
+#music-button {
+    position: fixed;
+    right: 16px;
+    bottom: 32px;
+    padding: 12px 18px;
+
+    background-color: var(--ink);
+    color: var(--paper);
+
+    border: none;
+    border-radius: 50px;
+
+    font-family: inherit;
+    cursor: pointer;
+
+    z-index: 1000;
+
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#music-button:hover {
+    background-color: var(--accent);
+    transform: translateY(-2px);
+}
+/* Audio : Done */
