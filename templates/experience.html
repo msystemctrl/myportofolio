@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experience - {{ name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/img/M favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <audio id="background-music" loop>
+        <source src="/static/audio/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <header class="site-header">
+        <div class="container">
+            <button
+                class="brand"
+                id="menu-toggle"
+                type="button"
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+                aria-controls="site-navigation"
+            >
+                <img src="/static/img/M orange.png" alt="Marsya logo" class="brand-logo">
+            </button>
+
+            <nav>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="#education">Education</a>
+                <a href="#projects">Projects</a>
+                <a href="#gallery">Gallery</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="experience-section" id="experience">
+            <div class="container">
+                <h1>Experience</h1>
+                <p class="section-kicker">
+                    Organizational and volunteer roles held across university and high school.
+                </p>
+
+                <div class="experience-timeline">
+                    {% for experience in experience_list %}
+                        <article class="timeline-item {% if experience.is_ongoing %}is-current{% endif %}">
+                            <div class="timeline-marker"></div>
+
+                            <div class="timeline-content">
+                                <span class="experience-category">
+                                    {{ experience.get_category_display }}
+                                </span>
+                                <h2>{{ experience.title }}</h2>
+                                <p class="experience-description">
+                                    {{ experience.description }}
+                                </p>
+
+                                {% if experience.is_ongoing %}
+                                    <p class="experience-status">Ongoing</p>
+                                {% else %}
+                                    <p class="experience-status">Completed</p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">
+                            No experiences have been added yet.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+
+    <button id="music-button" type="button">
+        🎵 Play Music
+    </button>
+
+    <script>
+        <!-- Music control : Start -->
+        const music = document.getElementById("background-music");
+        const musicButton = document.getElementById("music-button");
+
+        musicButton.addEventListener("click", function () {
+            if (music.paused) {
+                music.play()
+                    .then(() => {
+                        musicButton.textContent = "🔇 Pause Music";
+                    })
+                    .catch((error) => {
+                        console.log("Music could not be played:", error);
+                    });
+            } else {
+                music.pause();
+                musicButton.textContent = "🎵 Play Music";
+            }
+        });
+        <!-- Music control : Done -->
+
+        <!-- Mobile navigation : Start -->
+        const menuToggle = document.getElementById("menu-toggle");
+        const siteHeader = document.querySelector(".site-header");
+        const navLinks = document.querySelectorAll(".site-header nav a");
+
+        menuToggle.addEventListener("click", function () {
+            siteHeader.classList.toggle("menu-open");
+
+            const isMenuOpen = siteHeader.classList.contains("menu-open");
+
+            menuToggle.setAttribute("aria-expanded", isMenuOpen);
+        });
+
+        navLinks.forEach(function (link) {
+            link.addEventListener("click", function () {
+                siteHeader.classList.remove("menu-open");
+                menuToggle.setAttribute("aria-expanded", "false");
+            });
+        });
+        <!-- Mobile navigation : Done -->
+    </script>
+</body>
+</html>
