@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Experience - {{ name }}</title>
+    <title>Projects - {{ name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -18,18 +18,10 @@
 
     <header class="site-header">
         <div class="container">
-            <button
-                class="brand"
-                id="menu-toggle"
-                type="button"
-                aria-label="Open navigation menu"
-                aria-expanded="false"
-                aria-controls="site-navigation"
-            >
+            <button class="brand" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-navigation">
                 <img src="/static/img/M orange.png" alt="Marsya logo" class="brand-logo">
             </button>
-
-            <nav>
+            <nav id="site-navigation">
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experiences</a>
                 <a href="{% url 'main:show_education' %}">Education</a>
@@ -40,38 +32,25 @@
     </header>
 
     <main>
-        <section class="experience-section" id="experience">
+        <section class="projects-section" id="projects" aria-labelledby="projects-heading">
             <div class="container">
-                <h1>Experiences</h1>
-                <p class="section-kicker">
-                    A collection of experiences, achievements, and contributions throughout my academic and professional journey.
-                </p>
-
-                <div class="experience-timeline">
-                    {% for experience in experience_list %}
-                        <article class="timeline-item {% if experience.is_ongoing %}is-current{% endif %}">
-                            <div class="timeline-marker"></div>
-
-                            <div class="timeline-content">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-                                <h2>{{ experience.title }}</h2>
-                                <p class="experience-description">
-                                    {{ experience.description }}
-                                </p>
-
-                                {% if experience.is_ongoing %}
-                                    <p class="experience-status">Ongoing</p>
-                                {% else %}
-                                    <p class="experience-status">Completed</p>
-                                {% endif %}
-                            </div>
+                <h2 id="projects-heading" class="section-title">Projects</h2>
+                <p class="section-intro">A few things I've built and worked on.</p>
+                <div class="projects-grid">
+                    {% for project in project_list %}
+                        <article class="project-card">
+                            <div class="project-mark" aria-hidden="true"><span>{{ forloop.counter }}</span></div>
+                            <h3>{{ project.title }}</h3>
+                            <p class="project-meta">{{ project.meta }}</p>
+                            <p>{{ project.description }}</p>
+                            <ul class="project-tags">
+                                {% for tag in project.tag_list %}
+                                    <li>{{ tag }}</li>
+                                {% endfor %}
+                            </ul>
                         </article>
                     {% empty %}
-                        <p class="empty-state">
-                            No experiences have been added yet.
-                        </p>
+                        <p class="empty-state">No projects have been added yet.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -84,9 +63,7 @@
         </div>
     </footer>
 
-    <button id="music-button" type="button">
-        🎵 Play Music
-    </button>
+    <button id="music-button" type="button">🎵 Play Music</button>
 
     <script>
         <!-- Music control : Start -->
@@ -95,13 +72,8 @@
 
         musicButton.addEventListener("click", function () {
             if (music.paused) {
-                music.play()
-                    .then(() => {
-                        musicButton.textContent = "🔇 Pause Music";
-                    })
-                    .catch((error) => {
-                        console.log("Music could not be played:", error);
-                    });
+                music.play().then(() => { musicButton.textContent = "🔇 Pause Music"; })
+                    .catch((error) => { console.log("Music could not be played:", error); });
             } else {
                 music.pause();
                 musicButton.textContent = "🎵 Play Music";
@@ -116,10 +88,7 @@
 
         menuToggle.addEventListener("click", function () {
             siteHeader.classList.toggle("menu-open");
-
-            const isMenuOpen = siteHeader.classList.contains("menu-open");
-
-            menuToggle.setAttribute("aria-expanded", isMenuOpen);
+            menuToggle.setAttribute("aria-expanded", siteHeader.classList.contains("menu-open"));
         });
 
         navLinks.forEach(function (link) {

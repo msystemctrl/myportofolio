@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from main.models import Experience, Education
+from main.models import Experience, Education, Project
 
 
 def show_main(request):
@@ -34,3 +34,10 @@ def show_education(request):
         "education_list": Education.objects.all().order_by('-start_date'),
     }
     return render(request, "education.html", context)
+
+def show_projects(request):
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "project_list": Project.objects.all().order_by('order'),
+    }
+    return render(request, "projects.html", context)

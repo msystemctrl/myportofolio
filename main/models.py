@@ -51,3 +51,18 @@ class Education(models.Model):
     @property
     def highlight_list(self):
         return [line.strip() for line in self.highlights.splitlines() if line.strip()]
+
+class Project(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    meta = models.CharField(max_length=255, help_text="Contoh: Perempuan Inovasi 2025 Bootcamp · June 2025")
+    description = models.TextField()
+    tags = models.CharField(max_length=255, help_text="Pisahkan dengan koma, contoh: HTML, CSS, JavaScript")
+    order = models.PositiveIntegerField(default=0, help_text="Angka lebih kecil tampil lebih dulu")
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def tag_list(self):
+        return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
