@@ -66,3 +66,12 @@ class Project(models.Model):
     @property
     def tag_list(self):
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+class GalleryPhoto(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    image_path = models.CharField(max_length=255, help_text="Contoh: /static/img/gambar1.jpeg")
+    caption = models.CharField(max_length=255, blank=True)
+    order = models.PositiveIntegerField(default=0, help_text="1-6, menentukan posisi di layout")
+
+    def __str__(self):
+        return self.caption or self.image_path

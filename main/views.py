@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from main.models import Experience, Education, Project
+from main.models import Experience, Education, Project, GalleryPhoto
 
 
 def show_main(request):
@@ -41,3 +41,13 @@ def show_projects(request):
         "project_list": Project.objects.all().order_by('order'),
     }
     return render(request, "projects.html", context)
+
+GALLERY_POSITIONS = ['g-a', 'g-b', 'g-c', 'g-d', 'g-e', 'g-f']
+def show_gallery(request):
+    photos = GalleryPhoto.objects.all().order_by('order')[:6]
+    gallery_items = list(zip(photos, GALLERY_POSITIONS))
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "gallery_items": gallery_items,
+    }
+    return render(request, "gallery.html", context)
