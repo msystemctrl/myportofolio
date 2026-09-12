@@ -1,13 +1,13 @@
 from django.shortcuts import render
 
-from main.models import Experience
+from main.models import Experience, Education
 
 
 def show_main(request):
     context = {
         "name": "Marsya Rizka Aulia",
         "npm": "2506537606",
-        "study_program": "Information systems",
+        "study_program": "Information Systems",
         "bio": (
             "I am a Computer Science student with a curious mind and a deep "
             "fascination with the stars that illuminate the night sky. Beyond "
@@ -27,3 +27,10 @@ def show_experience(request):
         "experience_list": Experience.objects.all(),
     }
     return render(request, "experience.html", context)
+
+def show_education(request):
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "education_list": Education.objects.all().order_by('-start_date'),
+    }
+    return render(request, "education.html", context)

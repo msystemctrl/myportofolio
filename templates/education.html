@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Experience - {{ name }}</title>
+    <title>Education - {{ name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -18,18 +18,10 @@
 
     <header class="site-header">
         <div class="container">
-            <button
-                class="brand"
-                id="menu-toggle"
-                type="button"
-                aria-label="Open navigation menu"
-                aria-expanded="false"
-                aria-controls="site-navigation"
-            >
+            <button class="brand" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-navigation">
                 <img src="/static/img/M orange.png" alt="Marsya logo" class="brand-logo">
             </button>
-
-            <nav>
+            <nav id="site-navigation">
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experiences</a>
                 <a href="{% url 'main:show_education' %}">Education</a>
@@ -40,40 +32,28 @@
     </header>
 
     <main>
-        <section class="experience-section" id="experience">
+        <section class="education-section" id="education" aria-labelledby="education-heading">
             <div class="container">
-                <h1>Experiences</h1>
-                <p class="section-kicker">
-                    A collection of experiences, achievements, and contributions throughout my academic and professional journey.
-                </p>
-
-                <div class="experience-timeline">
-                    {% for experience in experience_list %}
-                        <article class="timeline-item {% if experience.is_ongoing %}is-current{% endif %}">
-                            <div class="timeline-marker"></div>
-
-                            <div class="timeline-content">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-                                <h2>{{ experience.title }}</h2>
-                                <p class="experience-description">
-                                    {{ experience.description }}
-                                </p>
-
-                                {% if experience.is_ongoing %}
-                                    <p class="experience-status">Ongoing</p>
-                                {% else %}
-                                    <p class="experience-status">Completed</p>
-                                {% endif %}
-                            </div>
-                        </article>
+                <h2 id="education-heading" class="section-title">Education</h2>
+                <p class="section-intro">A look at my academic background and formal education.</p>
+                <ol class="education-grid">
+                    {% for education in education_list %}
+                        <li>
+                            <article class="education-card">
+                                <p class="education-period">{{ education.period_display }}</p>
+                                <h3>{{ education.institution }}</h3>
+                                <p class="education-degree">{{ education.degree }}</p>
+                                <ul>
+                                    {% for point in education.highlight_list %}
+                                        <li>{{ point }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </article>
+                        </li>
                     {% empty %}
-                        <p class="empty-state">
-                            No experiences have been added yet.
-                        </p>
+                        <li class="empty-state">No education records have been added yet.</li>
                     {% endfor %}
-                </div>
+                </ol>
             </div>
         </section>
     </main>
@@ -84,9 +64,7 @@
         </div>
     </footer>
 
-    <button id="music-button" type="button">
-        🎵 Play Music
-    </button>
+    <button id="music-button" type="button">🎵 Play Music</button>
 
     <script>
         <!-- Music control : Start -->
@@ -95,13 +73,8 @@
 
         musicButton.addEventListener("click", function () {
             if (music.paused) {
-                music.play()
-                    .then(() => {
-                        musicButton.textContent = "🔇 Pause Music";
-                    })
-                    .catch((error) => {
-                        console.log("Music could not be played:", error);
-                    });
+                music.play().then(() => { musicButton.textContent = "🔇 Pause Music"; })
+                    .catch((error) => { console.log("Music could not be played:", error); });
             } else {
                 music.pause();
                 musicButton.textContent = "🎵 Play Music";
@@ -116,10 +89,7 @@
 
         menuToggle.addEventListener("click", function () {
             siteHeader.classList.toggle("menu-open");
-
-            const isMenuOpen = siteHeader.classList.contains("menu-open");
-
-            menuToggle.setAttribute("aria-expanded", isMenuOpen);
+            menuToggle.setAttribute("aria-expanded", siteHeader.classList.contains("menu-open"));
         });
 
         navLinks.forEach(function (link) {

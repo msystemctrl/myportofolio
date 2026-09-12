@@ -234,8 +234,9 @@ h1, .brand {
 }
 
 .experience-section h1 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
     margin: 0 0 0.5rem;
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
 }
 
 .section-kicker {
@@ -246,47 +247,32 @@ h1, .brand {
 }
 
 .experience-timeline {
-    position: relative;
-    max-width: 800px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
     margin-top: 2rem;
-}
-
-.experience-timeline::before {
-    content: "";
-    position: absolute;
-    top: 8px;
-    bottom: 8px;
-    left: 8px;
-    width: 2px;
-    background-color: var(--line);
 }
 
 .timeline-item {
     position: relative;
-    padding-left: 3rem;
-    padding-bottom: 3rem;
+    background-color: var(--paper);
+    border-left: 3px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.timeline-item:last-child {
-    padding-bottom: 0;
+.timeline-item:hover {
+    transform: translateY(-3px);
+}
+
+.timeline-item.is-current {
+    border-left-color: var(--accent);
 }
 
 .timeline-marker {
-    position: absolute;
-    top: 5px;
-    left: 0;
-    width: 18px;
-    height: 18px;
-    border: 3px solid var(--accent-dark);
-    border-radius: 50%;
-    background-color: var(--paper-raised);
-    z-index: 1;
-}
-
-.timeline-item.is-current .timeline-marker {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 6px var(--accent-soft);
+    display: none;
 }
 
 .experience-category {
@@ -307,7 +293,6 @@ h1, .brand {
 }
 
 .experience-description {
-    max-width: 650px;
     margin: 0;
     color: var(--text-muted);
     line-height: 1.7;
@@ -319,10 +304,8 @@ h1, .brand {
     margin-bottom: 0;
     padding: 0.35rem 0.75rem;
     border-radius: 999px;
-
     background-color: var(--accent-soft);
     color: var(--accent-dark);
-
     font-size: 0.75rem;
     font-weight: 600;
 }
@@ -339,28 +322,17 @@ h1, .brand {
 
 /* Mobile responsive */
 @media (max-width: 600px) {
-
     .experience-section {
         padding: 3.5rem 0;
     }
 
-    .experience-section h1 {
-        font-size: 1.75rem;
-    }
-
-    .experience-timeline::before {
-        left: 7px;
+    .experience-timeline {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
 
     .timeline-item {
-        padding-left: 2.5rem;
-        padding-bottom: 2.5rem;
-    }
-
-    .timeline-marker {
-        width: 16px;
-        height: 16px;
-        border-width: 2px;
+        padding: 1.5rem;
     }
 
     .timeline-content h2 {
@@ -641,9 +613,9 @@ h1, .brand {
         padding: 3rem 0;
     }
 
-    .timeline-item {
+    /* .timeline-item {
         padding-left: 2rem;
-    }
+    } */
 
     .education-card {
         padding: 1.5rem;
