@@ -1,4 +1,31 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block title %}Experience - {{ name }}{% endblock %}
+
+{% block content %}
+<section class="hero" id="profile">
+            <div class="container hero-grid">
+                <div class="hero-identity">
+                    <p class="hero-kicker">Information systems &middot; University of Indonesia</p>
+                    <h1>{{ name }}</h1>
+                </div>
+                <div class="hero-photo">
+                    <div class="photo-block"></div>
+                    <img class="avatar" src="/static/img/marsya.jpeg" alt="Photo of {{ name }}">
+                </div>
+                <div class="hero-details">
+                    <p class="bio">{{ bio }}</p>
+                    <div class="social-links">
+                        <a href="https://github.com/msystemctrl" class="social-link">GitHub</a>
+                        <a href="https://linkedin.com/in/marsya-rizka-aulia-9304553a2" class="social-link">LinkedIn</a>
+                        <a href="mailto:mars.marsyariz@gmail.com" class="social-link">Email</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+{% endblock %}
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -61,7 +88,7 @@
             </div>
         </section>
 
-        <!-- <section class="experience-section" id="experience" aria-labelledby="experience-heading">
+        <section class="experience-section" id="experience" aria-labelledby="experience-heading">
             <div class="container">
                 <h2 id="experience-heading" class="section-title">Experience</h2>
                 <p class="section-intro">Organizational and volunteer roles held across university and high school.</p>
@@ -133,9 +160,9 @@
                     </li>
                 </ol>
             </div>
-        </section> -->
+        </section>
 
-        <!-- <section class="education-section" id="education" aria-labelledby="education-heading">
+        <section class="education-section" id="education" aria-labelledby="education-heading">
             <div class="container">
                 <h2 id="education-heading" class="section-title">Education</h2>
                 <p class="section-intro">Academic path from high school in Depok to Information Systems at Universitas Indonesia.</p>
@@ -166,9 +193,9 @@
                     </li>
                 </ol>
             </div>
-        </section> -->
+        </section>
 
-        <!-- <section class="projects-section" id="projects" aria-labelledby="projects-heading">
+        <section class="projects-section" id="projects" aria-labelledby="projects-heading">
             <div class="container">
                 <h2 id="projects-heading" class="section-title">Projects</h2>
                 <p class="section-intro">Hands-on work spanning web development and educational robotics.</p>
@@ -197,9 +224,9 @@
                     </article>
                 </div>
             </div>
-        </section> -->
+        </section>
 
-        <!-- <section class="gallery-section" id="gallery" aria-labelledby="gallery-heading">
+        <section class="gallery-section" id="gallery" aria-labelledby="gallery-heading">
             <div class="container">
                 <h2 id="gallery-heading" class="section-title">Gallery</h2>
                 <p class="section-intro">A few personal snapshots from projects, events, and everyday moments.</p>
@@ -226,7 +253,7 @@
                         </div>
                 </div>
             </div>
-        </section> -->
+        </section>
     </main>
 
     <footer class="site-footer">
@@ -240,10 +267,8 @@
     </button>
 
     <script>
-        <!-- Music control : Start -->
         const music = document.getElementById("background-music");
         const musicButton = document.getElementById("music-button");
-
         musicButton.addEventListener("click", function () {
             if (music.paused) {
                 music.play()
@@ -258,13 +283,10 @@
                 musicButton.textContent = "🎵 Play Music";
             }
         });
-        <!-- Music control : Done -->
 
-        <!-- Mobile navigation : Start -->
         const menuToggle = document.getElementById("menu-toggle");
         const siteHeader = document.querySelector(".site-header");
         const navLinks = document.querySelectorAll(".site-header nav a");
-
         menuToggle.addEventListener("click", function () {
             siteHeader.classList.toggle("menu-open");
 
@@ -272,14 +294,12 @@
 
             menuToggle.setAttribute("aria-expanded", isMenuOpen);
         });
-
         navLinks.forEach(function (link) {
             link.addEventListener("click", function () {
                 siteHeader.classList.remove("menu-open");
                 menuToggle.setAttribute("aria-expanded", "false");
             });
         });
-        <!-- Mobile navigation : Done -->
     </script>
 </body>
-</html>
+</html> -->
