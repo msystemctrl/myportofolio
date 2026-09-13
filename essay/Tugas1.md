@@ -30,6 +30,74 @@ Tool yang saya gunakan adalah Claude Anthropic. Strategi prompting yang saya ter
 
 Ketika menyusun hamburger menu untuk navigasi mobile, saya mengandalkan eksperimen langsung dengan JavaScript untuk toggle tampilan, mencoba, gagal, dan mencoba ulang, hingga perilakunya sesuai yang saya inginkan. Begitu pula dengan audio player, penentuan skema warna ink blue dan aksen oranye-merah, serta penataan grid asimetris pada bagian Gallery, semuanya lahir dari proses coba-coba saya sendiri, bukan dari saran AI. Dari pengalaman ini saya juga menyadari keterbatasan AI cukup jelas, terutama ketika berhadapan dengan sesuatu yang sifatnya visual dan bukan tekstual. Penataan grid foto pada bagian Gallery adalah contoh paling nyata, AI bisa menjelaskan atribut grid-template-columns atau grid-gap secara definitif, tapi tidak bisa melihat apakah susunan foto tersebut sudah enak dipandang atau belum, apalagi pada tampilan mobile. Kerapian itu sepenuhnya soal rasa dan penilaian visual saya sendiri, dan sampai sekarang bagian tersebut masih saya anggap belum sepenuhnya rapi, sesuatu yang tidak bisa diselesaikan lewat penjelasan AI sebaik apa pun itu.
 
+## Installation and Deployment
+
+### Requirements
+
+- Python 3.10+
+- pip
+- Git
+
+### Local Preview
+
+Clone this repository
+```bash
+git clone https://github.com/<username>/myportofolio.git
+cd myportofolio
+```
+
+Create a virtual environment
+```bash
+python -m venv env
+
+# Windows (cmd/PowerShell)
+env\Scripts\activate
+
+# Unix (macOS/Linux)
+source env/bin/activate
+```
+
+Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+Create a `.env` file in the project root for local configuration:
+```
+PRODUCTION=False
+```
+
+Run migrations and start the server
+```bash
+python manage.py migrate  # local development uses SQLite by default
+python manage.py runserver
+```
+
+Then open `http://127.0.0.1:8000/`.
+
+### Deployment
+
+Production uses PostgreSQL. Create a new project on [PWS](https://pws.cs.ui.ac.id), then set the following environment variables under the **Environs** tab:
+```
+PRODUCTION=True
+
+DB_NAME=<database-name>
+DB_USER=<database-user>
+DB_PASSWORD=<database-password>
+DB_HOST=<database-host>
+DB_PORT=<database-port>
+SCHEMA=tutorial
+```
+
+Add the PWS deployment URL to `ALLOWED_HOSTS` in `settings.py`, and make sure `WhiteNoiseMiddleware` is enabled so static files are served correctly in production.
+
+To push changes to PWS:
+```bash
+git add .
+git commit -m "chore: deploy"
+git push pws main:master
+```
+
 [^1]: Django: web framework Python yang digunakan untuk menyajikan halaman ini lewat template rendering.
 [^2]: PWS: Pacil Web Service, layanan hosting internal milik Fakultas Ilmu Komputer Universitas Indonesia.
 
