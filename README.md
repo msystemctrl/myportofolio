@@ -25,4 +25,4 @@ A personal portfolio website featuring an organizational history, academic backg
 
 ## Credits
 
-Individual project for the PBP course, Fasilkom UI.
+Individual project for the PBP course, Fasilkom UI. 
