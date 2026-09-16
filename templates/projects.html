@@ -1,16 +1,42 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Experience - {{ name }}{% endblock %}
+{% block meta %}
+    <title>Projects - {{ name }}</title>
+{% endblock meta %}
 
 {% block content %}
-<section class="projects-section" id="projects" aria-labelledby="projects-heading">
+    <main>
+        <section class="projects-section" id="projects" aria-labelledby="projects-heading">
             <div class="container">
-                <h2 id="projects-heading" class="section-title">Projects</h2>
+                <div class="project-header">
+                    <h2 id="projects-heading" class="section-title">Projects</h2>
+                    <a href="{% url 'main:create_project' %}" class="button project-add-button">
+                        <span aria-hidden="true">+</span>
+                        Add Project
+                    </a>
+                </div>
                 <p class="section-intro">A few things I've built and worked on.</p>
+
+                <form method="get" action="{% url 'main:show_projects' %}" class="project-search">
+                    <input type="search"
+                           name="title"
+                           value="{{ title_query }}"
+                           placeholder="Search by project name"
+                           class="project-search__input"
+                           aria-label="Search by project name">
+                    <button type="submit" class="button">Search</button>
+                </form>
+
                 <div class="projects-grid">
                     {% for project in project_list %}
                         <article class="project-card">
-                            <div class="project-mark" aria-hidden="true"><span>{{ forloop.counter }}</span></div>
+                            {% if project.project_image_url %}
+                                <img src="{{ project.project_image_url }}"
+                                     alt="Image of {{ project.title }}"
+                                     class="project-image">
+                            {% else %}
+                                <div class="project-mark" aria-hidden="true"><span>{{ forloop.counter }}</span></div>
+                            {% endif %}
                             <h3>{{ project.title }}</h3>
                             <p class="project-meta">{{ project.meta }}</p>
                             <p>{{ project.description }}</p>
@@ -19,11 +45,24 @@
                                     <li>{{ tag }}</li>
                                 {% endfor %}
                             </ul>
+                            <div class="project-card-actions">
+                                <div class="project-actions">
+                                    {% if project.project_url %}
+                                        <a href="{{ project.project_url }}" class="button">View Project</a>
+                                    {% endif %}
+                                    {% include "components/project_delete_modal.html" with project=project %}
+                                </div>
+                            </div>
                         </article>
                     {% empty %}
-                        <p class="empty-state">No projects have been added yet.</p>
+                        {% if title_query %}
+                            <p class="empty-state">No projects found with that name.</p>
+                        {% else %}
+                            <p class="empty-state">No projects have been added yet.</p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </section>
-{% endblock %}
+    </main>
+{% endblock content %}

@@ -59,6 +59,8 @@ class Project(models.Model):
     description = models.TextField()
     tags = models.CharField(max_length=255, help_text="Pisahkan dengan koma, contoh: HTML, CSS, JavaScript")
     order = models.PositiveIntegerField(default=0, help_text="Angka lebih kecil tampil lebih dulu")
+    project_url = models.URLField(blank=True)
+    project_image_url = models.URLField(blank=True, max_length=500)
 
     def __str__(self):
         return self.title
