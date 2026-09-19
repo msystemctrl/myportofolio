@@ -6,27 +6,39 @@
 
 {% block content %}
 <section class="education-section" id="education" aria-labelledby="education-heading">
-            <div class="container">
-                <h2 id="education-heading" class="section-title">Education</h2>
-                <p class="section-intro">A look at my academic background and formal education.</p>
-                <ol class="education-grid">
-                    {% for education in education_list %}
-                        <li>
-                            <article class="education-card">
-                                <p class="education-period">{{ education.period_display }}</p>
-                                <h3>{{ education.institution }}</h3>
-                                <p class="education-degree">{{ education.degree }}</p>
-                                <ul>
-                                    {% for point in education.highlight_list %}
-                                        <li>{{ point }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </article>
-                        </li>
-                    {% empty %}
-                        <li class="empty-state">No education records have been added yet.</li>
-                    {% endfor %}
-                </ol>
-            </div>
-        </section>
+    <div class="container">
+        <div class="project-header">
+            <h2 id="education-heading" class="section-title">Education</h2>
+            <a href="{% url 'main:create_education' %}" class="button project-add-button">
+                <span aria-hidden="true">+</span>
+                Add Education
+            </a>
+        </div>
+        <p class="section-intro">A look at my academic background and formal education.</p>
+        <ol class="education-grid">
+            {% for education in education_list %}
+                <li>
+                    <article class="education-card">
+                        <p class="education-period">{{ education.period_display }}</p>
+                        <h3>{{ education.institution }}</h3>
+                        <p class="education-degree">{{ education.degree }}</p>
+                        <ul>
+                            {% for point in education.highlight_list %}
+                                <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                        <div class="project-card-actions">
+                            <div class="project-actions">
+                                <a href="{% url 'main:update_education' education.id %}" class="button">Edit</a>
+                                {% include "components/education_delete_modal.html" with education=education %}
+                            </div>
+                        </div>
+                    </article>
+                </li>
+            {% empty %}
+                <li class="empty-state">No education records have been added yet.</li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
 {% endblock %}

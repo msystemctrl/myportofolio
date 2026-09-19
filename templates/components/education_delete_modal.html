@@ -1,0 +1,38 @@
+<button type="button"
+        class="button button-danger"
+        popovertarget="delete-education-{{ education.id }}"
+        aria-label="Delete {{ education.institution }}"
+        title="Delete education record">
+    Delete
+</button>
+<div id="delete-education-{{ education.id }}"
+     class="project-delete-modal"
+     popover="auto"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="delete-education-title-{{ education.id }}">
+    <button type="button"
+            class="project-delete-modal__backdrop"
+            popovertarget="delete-education-{{ education.id }}"
+            popovertargetaction="hide"
+            aria-label="Close delete confirmation"></button>
+    <div class="project-delete-modal__content">
+        <button type="button"
+                class="project-delete-modal__close"
+                popovertarget="delete-education-{{ education.id }}"
+                popovertargetaction="hide"
+                aria-label="Close delete confirmation">×</button>
+        <h2 id="delete-education-title-{{ education.id }}">Delete Education Record?</h2>
+        <p>Are you sure you want to delete <strong>{{ education.institution }}</strong>?</p>
+        <div class="project-delete-modal__actions">
+            <button type="button"
+                    class="button button-secondary"
+                    popovertarget="delete-education-{{ education.id }}"
+                    popovertargetaction="hide">Cancel</button>
+            <form method="post" action="{% url 'main:delete_education' education.id %}">
+                {% csrf_token %}
+                <button type="submit" class="button button-danger">Yes, Delete</button>
+            </form>
+        </div>
+    </div>
+</div>

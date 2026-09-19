@@ -3,7 +3,7 @@ from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
-from main.forms import ProjectForm
+from main.forms import ProjectForm, EducationForm
 from main.models import Experience, Education, Project, GalleryPhoto
 
 
@@ -32,12 +32,70 @@ def show_experience(request):
     }
     return render(request, "experience.html", context)
 
+
 def show_education(request):
+    json_response = get_education_json(request)
+    education_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
+    education_list = [item.object for item in education_list]
+    institution_query = request.GET.get("institution", "").strip()
+
     context = {
         "name": "Marsya Rizka Aulia",
-        "education_list": Education.objects.all().order_by('-start_date'),
+        "education_list": education_list,
+        "institution_query": institution_query,
     }
     return render(request, "education.html", context)
+
+def get_education_json(request):
+    institution_query = request.GET.get("institution", "").strip()
+    education_qs = Education.objects.all().order_by('-start_date')
+
+    if institution_query:
+        education_qs = education_qs.filter(institution__icontains=institution_query)
+
+    education_json = serializers.serialize("json", education_qs)
+    return HttpResponse(education_json, content_type="application/json")
+
+def create_education(request):
+    form = EducationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "New education record added successfully!")
+        return redirect("main:show_education")
+
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "form": form,
+    }
+    return render(request, "education_form.html", context)
+
+def update_education(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+    form = EducationForm(request.POST or None, instance=education)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Education record updated successfully!")
+        return redirect("main:show_education")
+
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "form": form,
+        "education": education,
+    }
+    return render(request, "education_form.html", context)
+
+def delete_education(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+
+    if request.method == "POST":
+        education.delete()
+        messages.success(request, "Education record deleted successfully!")
+        return redirect("main:show_education")
+
+    return redirect("main:show_education")
+
 
 def show_projects(request):
     json_response = get_projects_json(request)
@@ -89,6 +147,7 @@ def delete_project(request, project_id):
         return redirect("main:show_projects")
 
     return redirect("main:show_projects")
+
 
 GALLERY_POSITIONS = ['g-a', 'g-b', 'g-c', 'g-d', 'g-e', 'g-f']
 def show_gallery(request):
