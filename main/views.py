@@ -3,7 +3,7 @@ from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
-from main.forms import ProjectForm, EducationForm
+from main.forms import ProjectForm, EducationForm, ExperienceForm
 from main.models import Experience, Education, Project, GalleryPhoto
 
 
@@ -26,11 +26,67 @@ def show_main(request):
 
 
 def show_experience(request):
+    json_response = get_experience_json(request)
+    experience_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
+    experience_list = [item.object for item in experience_list]
+    category_query = request.GET.get("category", "").strip()
+
     context = {
         "name": "Marsya Rizka Aulia",
-        "experience_list": Experience.objects.all(),
+        "experience_list": experience_list,
+        "category_query": category_query,
     }
     return render(request, "experience.html", context)
+
+def get_experience_json(request):
+    category_query = request.GET.get("category", "").strip()
+    experience_qs = Experience.objects.all().order_by('-started_at')
+
+    if category_query:
+        experience_qs = experience_qs.filter(category=category_query)
+
+    experience_json = serializers.serialize("json", experience_qs)
+    return HttpResponse(experience_json, content_type="application/json")
+
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "New experience added successfully!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "form": form,
+    }
+    return render(request, "experience_form.html", context)
+
+def update_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+    form = ExperienceForm(request.POST or None, instance=experience)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Experience updated successfully!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Marsya Rizka Aulia",
+        "form": form,
+        "experience": experience,
+    }
+    return render(request, "experience_form.html", context)
+
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "Experience deleted successfully!")
+        return redirect("main:show_experience")
+
+    return redirect("main:show_experience")
 
 
 def show_education(request):
