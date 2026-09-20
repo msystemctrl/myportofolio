@@ -18,10 +18,24 @@
 }
 
 body {
+    position: relative;   
+    isolation: isolate;   
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
     background-color: var(--paper);
     line-height: 1.6;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(620px circle at 8% -4%,  rgba(157, 195, 232, 0.42), transparent 60%),  /* biru */
+        radial-gradient(720px circle at 102% 8%, rgba(247, 202, 201, 0.45), transparent 55%),  /* pink */
+        radial-gradient(680px circle at 88% 92%, rgba(201, 174, 220, 0.32), transparent 55%),  /* lavender */
+        radial-gradient(520px circle at 2% 78%,  rgba(157, 195, 232, 0.28), transparent 55%);  /* biru */
 }
 
 h1, .brand {
@@ -95,11 +109,11 @@ h1, .brand {
 
 .hero {
     padding: calc(4.5rem + 4.5rem) 0 5rem;
-    background-image: url('/static/img/ceramics.jpeg');
+    /* background-image: url('/static/img/ceramics.jpeg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
+    background-attachment: fixed; */
 }
 
 .hero-grid {
@@ -230,7 +244,8 @@ h1, .brand {
 .experience-section {
     padding: 4.5rem 0;
     border-top: 1px solid var(--line);
-    background-color: var(--paper-raised);
+    /* background-color: var(--paper-raised); */
+    background-color: rgba(242, 235, 224, 0.55); 
 }
 
 .experience-section h1 {
@@ -398,7 +413,8 @@ h1, .brand {
 .projects-section {
     padding: 4.5rem 0;
     border-top: 1px solid var(--line);
-    background-color: var(--paper-raised);
+    /* background-color: var(--paper-raised); */
+    background-color: rgba(242, 235, 224, 0.55);  
 }
 
 .projects-grid {
