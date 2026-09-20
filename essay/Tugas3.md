@@ -1,0 +1,36 @@
+# Tugas 3
+
+## [Pertanyaan Reflektif](https://pbp.cs.ui.ac.id/assignments/individual/tugas-3.html#pertanyaan-reflektif)
+
+> 1. Jelaskan mengapa kita menggunakan `ModelForm` pada Django alih-alih membuat form HTML secara manual. Selain itu, jelaskan pula mengapa kita diwajibkan menambahkan `{% csrf_token %}` pada form tersebut!
+
+Waktu saya bikin `EducationForm` dan `ExperienceForm`, saya cuma perlu tulis `fields = ["institution", "degree", "start_date", "end_date", "highlights"]` dan Django otomatis tahu `start_date`/`end_date` harus berupa tanggal valid, `institution` tidak boleh lebih dari 255 karakter, dan seterusnya, langsung dari constraint yang sudah saya definisikan di `models.py`. Kalau saya bikin form HTML manual, semua validasi ini harus saya tulis ulang sendiri di _view_, dan kalau suatu saat saya ubah `max_length` di model, saya harus ingat untuk update validasi manual itu juga di tempat lain. Dengan `ModelForm`, form otomatis ikut menyesuaikan. Ini juga kerasa banget di `ExperienceForm`, field `category` otomatis jadi dropdown berisi pilihan dari `EXPERIENCE_CHOICES` tanpa saya perlu tulis satupun `<option>` manual.
+
+Soal `{% csrf_token %}`, ini menjaga dari serangan Cross-Site Request Forgery, situasi di mana situs lain yang jahat menyisipkan form tersembunyi yang menembak endpoint saya, misalnya `/education/add/` dan memanfaatkan sesi login browser saya yang masih aktif, tanpa saya sadari sedang mengirim request itu. Django menyisipkan token acak unik per sesi ke setiap form, dan endpoint menolak POST kalau token itu tidak cocok atau tidak ada, biasanya keluar sebagai error 403 Forbidden. Ini juga yang bikin saya harus isi `CSRF_TRUSTED_ORIGINS` di `settings.py` dengan URL PWS saya sebelum deploy, karena tanpa itu, Django menganggap origin domain PWS saya sendiri sebagai "tidak dipercaya" untuk request lintas origin, meskipun token csrf nya sendiri sudah benar.
+
+> 2. Pada Tutorial 03, kita membahas format data JSON dan XML. Mengapa JSON lebih disukai dalam pengembangan aplikasi web modern dibandingkan XML?
+
+Waktu saya tes `/api/education/` dan `/api/experience/` langsung di browser, hasilnya cuma array objek yang rapi seperti `{"model": "main.education", "pk": "...", "fields": {...}}`, tanpa tag pembuka-penutup yang berulang seperti kalau pakai XML (`<education><institution>...</institution></education>`). Ukuran payload JSON jelas lebih kecil karena tidak ada overhead tag, dan ini penting kalau datanya makin banyak nanti.
+
+Alasan yang menurut saya lebih fundamental, JSON strukturnya memang sudah persis seperti struktur data native di JavaScript, jadi begitu response ini diterima frontend, `JSON.parse()` langsung menghasilkan object yang bisa dipakai, tidak perlu proses parsing tambahan lewat DOM parser seperti XML. Karena mayoritas aplikasi web modern itu banyak bergantung ke JavaScript di sisi client, JSON jadi pilihan yang jauh lebih natural dan cepat diproses dibanding XML yang lebih cocok untuk dokumen terstruktur kompleks dengan kebutuhan schema/namespace ketat, yang sebenarnya tidak saya perlukan sama sekali untuk sekadar menampilkan daftar proyek atau riwayat pendidikan.
+
+> 3. Jelaskan alur yang terjadi saat kamu menggunakan fungsi _view_ untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses _serialization_ pada model Django sebelum datanya dikembalikan?
+
+Alurnya di `get_education_json` saya seperti ini, pertama ambil `QuerySet` dari `Education.objects.all()`, terus kalau ada parameter `?institution=` di URL, saya filter dulu pakai `filter(institution__icontains=...)`. Nah, `QuerySet` ini isinya adalah instance model Python yang penuh dengan method dan _property_ seperti `period_display` atau `highlight_list` yang saya tulis sendiri di `models.py`, dan field `id`-nya sendiri berupa objek `UUID`, bukan string biasa. Kalau saya coba langsung `HttpResponse(queryset)`, ini akan error, karena format ini bukan sesuatu yang bisa langsung diubah jadi teks JSON, Python tidak tahu cara menerjemahkan objek model atau `UUID` jadi representasi JSON yang valid.
+
+Di sinilah `serializers.serialize("json", education_qs)` masuk, dia mengubah tiap instance model itu jadi struktur `dict` sederhana berisi nama model, primary key yang dikonversi jadi string, dan `fields` yang isinya cuma tipe data dasar seperti string, angka, dan tanggal dalam format ISO, baru struktur inilah yang benar-benar bisa diubah jadi teks JSON valid lewat `HttpResponse(..., content_type="application/json")`.
+
+Yang menarik, saya juga perlu proses sebaliknya di `show_education`, `serializers.deserialize()`, untuk mengubah teks JSON itu balik lagi jadi instance model asli yang bukan cuma dict biasa, supaya di `education.html` saya masih bisa panggil `education.period_display` atau `education.highlight_list` seperti biasa. Kalau saya biarkan datanya tetap berupa dict hasil `json.loads()` polos, _property_ custom saya itu tidak akan bisa dipanggil sama sekali karena dict bukan instance model.
+
+### AI Disclosure
+
+Untuk Tugas 3 ini saya pakai AI (Claude, Anthropic) dengan pola yang beda dari Tugas 2. Alih-alih minta dijelaskan konsep dari nol, saya mulai dengan minta AI membaca ulang materi Data Delivery, biar saya tahu persis bagian mana yang belum diimplementasikan, cara pengimplementasian nya, dan memperdalam lagi pemahaman yang diajarkan di kelas.
+
+Saya juga sengaja menguji sendiri setiap tahap sebelum lanjut, dan ini kepakai betul karena saya menemukan dua bug nyata dari kode yang AI berikan:
+
+1. Saat implementasi `ExperienceForm`, `runserver` saya langsung gagal dengan `NameError: name 'forms' is not defined` karena memakai `forms.DateTimeField(...)` di `forms.py` tapi lupa menambahkan `from django import forms` di baris importnya.
+2. Saat coba implementasi CRUD untuk Gallery, saya kena `NameError: name 'GalleryPhotoForm' is not defined` karena baris import `GalleryPhotoForm` di `views.py` tidak lengkap ditambahkan meskipun class-nya sudah ada di `forms.py`.
+
+Kedua kali ini saya tempelkan langsung traceback error-nya ke AI untuk didiagnosis, bukan cuma minta diperbaiki, supaya saya juga mengerti akar masalahnya seperti baris mana yang hilang, kenapa Python bisa sampai pada kesimpulan `NameError` itu. Untuk kasus Gallery secara khusus, saya juga yang memutuskan sendiri untuk **membatalkan seluruh implementasi CRUD Gallery** setelah menyadari itu tidak wajib di ketentuan tugas dan hanya menambah risiko bug baru tanpa nilai tambah, alih-alih menerima saja saran AI untuk terus memperbaikinya.
+
+Keterbatasan yang paling kerasa adalah bahwa AI cukup diandalkan untuk pola boilerplate berulang, tapi tidak sekali pun kode yang diberikan langsung sempurna tanpa saya jalankan dan uji manual satu-satu seperti `runserver`, coba tambah data lewat form, coba edit, coba hapus, cek endpoint JSON langsung di browser. Kalau saya cuma copy-paste tanpa tes tiap tahap seperti ini, dua bug di atas kemungkinan besar baru ketahuan jauh lebih lambat, atau malah nyangkut ke production PWS.

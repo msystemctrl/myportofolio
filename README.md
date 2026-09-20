@@ -22,6 +22,7 @@ A personal portfolio website featuring an organizational history, academic backg
 |---|---|---|
 | 1 | Static Web with HTML5 and CSS3 | [TUGAS1.md](/essay/Tugas1.md) |
 | 2 | Implementasi MVT pada Django | [TUGAS2.md](/essay/Tugas2.md) |
+| 3 | Form & Data Delivery | [TUGAS3.md](/essay/Tugas3.md) |
 
 ## Credits
 

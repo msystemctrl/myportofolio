@@ -2,21 +2,25 @@ from django.urls import path
 
 from main.views import (
     show_main,
+
     show_experience,
-    show_education,
-    show_projects,
-    show_gallery,
-    create_project,
-    delete_project,
-    get_projects_json,
-    create_education,
-    update_education,
-    delete_education,
-    get_education_json,
     create_experience,
     update_experience,
     delete_experience,
     get_experience_json,
+
+    show_education,
+    create_education,
+    update_education,
+    delete_education,
+    get_education_json,
+
+    show_projects,
+    create_project,
+    delete_project,
+    get_projects_json,
+    
+    show_gallery,
 )
 
 app_name = "main"
