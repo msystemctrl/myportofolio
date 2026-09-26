@@ -267,6 +267,14 @@ def delete_project(request, project_id):
     return redirect("main:show_projects")
 
 
+def show_gallery(request):
+    context = {
+        'name': 'Marsya Rizka Aulia',
+    }
+
+    return render(request, 'gallery.html', context)
+
+
 def register(request):
     form = UserCreationForm(request.POST or None)
 
