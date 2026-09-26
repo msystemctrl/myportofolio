@@ -80,20 +80,13 @@
                             <p class="songfess-kicker">A song for {{ songfess.display_name }}</p>
                             <h2 class="songfess-cursive">{{ songfess.song_title }}</h2>
                             {% if songfess.song_url %}
+                                <div id="spotify-player" class="spotify-player"></div>
                                 <button
                                     id="music-button"
                                     type="button"
+                                    class="songfess-btn"
                                     data-song-url="{{ songfess.song_url }}">
                                     Show
-                                </button>
-
-                                <div id="spotify-player" class="spotify-player"></div>
-
-                                <button
-                                    id="close-music-button"
-                                    type="button"
-                                    hidden>
-                                    Close
                                 </button>
                             {% endif %}
                         </div>
@@ -167,10 +160,16 @@
     <script>
         const musicButton = document.getElementById("music-button");
         const spotifyPlayer = document.getElementById("spotify-player");
-        const closeMusicButton = document.getElementById("close-music-button");
 
-        if (musicButton && spotifyPlayer && closeMusicButton) {
+        if (musicButton && spotifyPlayer) {
             musicButton.addEventListener("click", function () {
+                const isShowing = spotifyPlayer.innerHTML.trim() !== "";
+                if (isShowing) {
+                    spotifyPlayer.innerHTML = "";
+                    musicButton.textContent = "Show";
+                    return;
+                }
+
                 const spotifyUrl = musicButton.dataset.songUrl;
                 if (!spotifyUrl) {
                     return;
@@ -195,14 +194,7 @@
                     </iframe>
                 `;
 
-                musicButton.hidden = true;
-                closeMusicButton.hidden = false;
-            });
-
-            closeMusicButton.addEventListener("click", function () {
-                spotifyPlayer.innerHTML = "";
-                closeMusicButton.hidden = true;
-                musicButton.hidden = false;
+                musicButton.textContent = "Close";
             });
         }
     </script>
