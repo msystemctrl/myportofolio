@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from datetime import date
+from datetime import date 
 from main.models import Experience, Education, Project, GalleryPhoto
 
 

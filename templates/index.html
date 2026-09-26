@@ -5,7 +5,8 @@
 {% endblock meta %}
 
 {% block content %}
-<section class="hero" id="profile">
+    <main>
+        <section class="hero" id="profile">
             <div class="container hero-grid">
                 <div class="hero-identity">
                     <p class="hero-kicker">Information systems &middot; University of Indonesia</p>
@@ -17,6 +18,20 @@
                 </div>
                 <div class="hero-details">
                     <p class="bio">{{ bio }}</p>
+                    <dl class="meta-list">
+                        <div class="meta-row">
+                            <dt>NPM</dt>
+                            <dd>{{ npm }}</dd>
+                        </div>
+                        <div class="meta-row">
+                            <dt>Program</dt>
+                            <dd>{{ study_program }}</dd>
+                        </div>
+                        <div class="meta-row">
+                            <dt>Last Login</dt>
+                            <dd>{{ last_login }}</dd>
+                        </div>
+                    </dl>
                     <div class="social-links">
                         <a href="https://github.com/msystemctrl" class="social-link">GitHub</a>
                         <a href="https://linkedin.com/in/marsya-rizka-aulia-9304553a2" class="social-link">LinkedIn</a>
@@ -25,6 +40,7 @@
                 </div>
             </div>
         </section>
+    </main>
 {% endblock %}
 
 <!-- <!DOCTYPE html>
