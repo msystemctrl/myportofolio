@@ -120,3 +120,9 @@ sftp-config.json
 
 # macOS
 .DS_Store
+
+# Local URL comparison/debug file
+urls_diff.txt
+
+# End-to-end test file
+test_e2e.py
