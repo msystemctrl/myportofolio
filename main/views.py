@@ -12,6 +12,14 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from main.forms import ProjectForm, EducationForm, ExperienceForm
 from main.models import Project, Education, Experience
 
+SKILLS = [
+    {"icon": "css3.png", "alt": "CSS3"},
+    {"icon": "figma.png", "alt": "Figma"},
+    {"icon": "html5.png", "alt": "HTML5"},
+    {"icon": "java.png", "alt": "Java"},
+    {"icon": "pandas.png", "alt": "Pandas"},
+    {"icon": "python.png", "alt": "Python"},
+]
 
 def show_main(request):
     last_login = request.COOKIES.get('last_login', 
@@ -31,6 +39,7 @@ def show_main(request):
             "of the universe."
         ),
         "last_login": last_login,
+        "skills": SKILLS,
     }
     return render(request, "index.html", context)
 

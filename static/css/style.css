@@ -1035,3 +1035,172 @@ h1, .brand {
     font-size: 0.8rem;
 }
 /* Project star : Done */
+
+/* Skills : Start */
+.skills-sec {
+    padding: 3.5rem 0 6rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.skills-sec .sec-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+}
+
+.skills-sec .sec-kicker {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.skills-sec .sec-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01rem;
+}
+
+.skills-sec .sec-desc {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.pill-carousal-wrapper {
+    max-width: 840px;
+    width: 100%;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 20px;
+    box-shadow: 4px 4px 0px var(--ink);
+    height: 72px;
+    padding: 0 1.75rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
+}
+
+.pill-carousal-track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    animation: pill-scroll 24s linear infinite;
+    will-change: transform;
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 3.5%, rgba(0,0,0,1) 96.5%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 3.5%, rgba(0,0,0,1) 96.5%, rgba(0,0,0,0) 100%);
+}
+
+.pill-carousal-wrapper:hover .pill-carousal-track {
+    animation-play-state: paused;
+}
+
+.pill-group {
+    display: flex;
+    align-items: center;
+    gap: 3.5rem;
+    padding-right: 3.5rem;
+    flex-shrink: 0;
+}
+
+.skills-carousel-outer {
+    position: relative;
+}
+
+.skills-floating-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 12px;
+    transform: translate(-50%, 4px);
+    background: var(--accent);
+    color: var(--paper);
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 2px 2px 0px var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 20;
+}
+
+.skills-floating-tooltip.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+@keyframes pill-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-33.333333%);
+    }
+}
+
+.pill-logo-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+}
+
+.pill-logo-item:hover {
+    transform: translateY(-1px) scale(1.04);
+}
+
+.pill-logo-icon {
+    width: 32px;
+    height: 32px;
+    max-width: 32px;
+    max-height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+}
+
+.pill-logo-item {
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .skills-sec {
+        padding: 2.5rem 0 3.5rem;
+    }
+
+    .pill-carousal-wrapper {
+        height: 60px;
+        padding: 0 1.25rem;
+        max-width: 95%;
+        border-radius: 16px;
+    }
+
+    .pill-group {
+        gap: 2.25rem;
+        padding-right: 2.25rem;
+    }
+
+    .pill-logo-icon {
+        width: 26px;
+        height: 26px;
+    }
+}
+/* Skills : Done */

@@ -43,7 +43,56 @@
                 </div>
             </div>
         </section>
+
+        <section class="skills-sec" id="skills">
+            <div class="container">
+                <div class="sec-header">
+                    <!-- <p class="sec-kicker">Under the Hood</p> -->
+                    <h2 class="sec-title">MY SKILLS</h2>
+                    <p class="sec-desc">What's powering the things I build</p>
+                </div>
+                <div class="skills-carousel-outer" id="skills-carousel-outer">
+                    <div class="pill-carousal-wrapper">
+                        <div class="pill-carousal-track">
+                            {% for group in "123" %}
+                                <div class="pill-group"{% if not forloop.first %} aria-hidden="true"{% endif %}>
+                                    {% for skill in skills %}
+                                        <div class="pill-logo-item" data-tooltip="{{ skill.alt }}">
+                                            <img class="pill-logo-icon"
+                                                src="/static/img/skills/{{ skill.icon }}"
+                                                alt="{% if forloop.parentloop.first %}logo {{ skill.alt }}{% endif %}"
+                                                width="32" height="32">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="skills-floating-tooltip" id="skills-floating-tooltip"></div>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <script>
+        const skillsOuter = document.getElementById("skills-carousel-outer");
+        const skillsTooltip = document.getElementById("skills-floating-tooltip");
+
+        document.querySelectorAll(".pill-logo-item").forEach(function (item) {
+            item.addEventListener("mouseenter", function () {
+                const outerRect = skillsOuter.getBoundingClientRect();
+                const itemRect = item.getBoundingClientRect();
+                const centerX = itemRect.left + itemRect.width / 2 - outerRect.left;
+
+                skillsTooltip.textContent = item.dataset.tooltip;
+                skillsTooltip.style.left = centerX + "px";
+                skillsTooltip.classList.add("is-visible");
+            });
+            item.addEventListener("mouseleave", function () {
+                skillsTooltip.classList.remove("is-visible");
+            });
+        });
+    </script>
 {% endblock %}
 
 <!-- <!DOCTYPE html>
