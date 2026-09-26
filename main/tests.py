@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from datetime import date 
-from main.models import Experience, Education, Project, GalleryPhoto
+from main.models import Experience, Education, Project
 
 
 class ExperienceTest(TestCase):
@@ -128,39 +128,3 @@ class ProjectTest(TestCase):
         response = self.client.get(reverse("main:show_projects"))
 
         self.assertContains(response, "No projects have been added yet.")
-
-
-class GalleryTest(TestCase):
-    def setUp(self):
-        self.photo = GalleryPhoto.objects.create(
-            image_path="/static/img/gambar1.jpeg",
-            caption="Test photo",
-            order=1,
-        )
-
-    def test_gallery_model(self):
-        self.assertEqual(str(self.photo), "Test photo")
-
-    def test_gallery_page(self):
-        response = self.client.get(reverse("main:show_gallery"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "gallery.html")
-        self.assertContains(response, self.photo.image_path)
-
-    def test_empty_gallery_page(self):
-        GalleryPhoto.objects.all().delete()
-        response = self.client.get(reverse("main:show_gallery"))
-
-        self.assertContains(response, "No photos have been added yet.")
-
-    def test_gallery_caps_at_six_photos(self):
-        for i in range(2, 8):
-            GalleryPhoto.objects.create(
-                image_path=f"/static/img/gambar{i}.jpeg",
-                order=i,
-            )
-        response = self.client.get(reverse("main:show_gallery"))
-
-        self.assertContains(response, "/static/img/gambar6.jpeg")
-        self.assertNotContains(response, "/static/img/gambar7.jpeg")

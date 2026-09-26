@@ -13,13 +13,24 @@
             </div>
             <div class="gallery-frame">
                 <div class="gallery-grid">
-                    {% for photo, position in gallery_items %}
-                        <div class="gallery-cell {{ position }}">
-                            <img src="{{ photo.image_path }}" alt="{{ photo.caption|default:'Gallery photo' }}">
+                    <div class="gallery-cell g-a">
+                        <img src="/static/img/gambar1.jpeg" alt="Gallery photo 1">
+                    </div>
+                        <div class="gallery-cell g-b">
+                            <img src="/static/img/gambar2.jpeg" alt="Gallery photo 2">
                         </div>
-                    {% empty %}
-                        <p class="empty-state">No photos have been added yet.</p>
-                    {% endfor %}
+                        <div class="gallery-cell g-c">
+                            <img src="/static/img/gambar3.jpeg" alt="Gallery photo 3">
+                        </div>
+                        <div class="gallery-cell g-d">
+                            <img src="/static/img/gambar4.jpeg" alt="Gallery photo 4">
+                        </div>
+                        <div class="gallery-cell g-e">
+                            <img src="/static/img/gambar5.jpeg" alt="Gallery photo 5">
+                        </div>
+                        <div class="gallery-cell g-f">
+                            <img src="/static/img/gambar6.jpeg" alt="Gallery photo 6">
+                        </div>
                 </div>
             </div>
         </section>

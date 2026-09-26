@@ -10,7 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm         
 
 from main.forms import ProjectForm, EducationForm, ExperienceForm
-from main.models import Experience, Education, Project, GalleryPhoto
+from main.models import Project, Education, Experience
 
 
 def show_main(request):
@@ -265,17 +265,6 @@ def delete_project(request, project_id):
         return redirect("main:show_projects")
 
     return redirect("main:show_projects")
-
-
-GALLERY_POSITIONS = ['g-a', 'g-b', 'g-c', 'g-d', 'g-e', 'g-f']
-def show_gallery(request):
-    photos = GalleryPhoto.objects.all().order_by('order')[:6]
-    gallery_items = list(zip(photos, GALLERY_POSITIONS))
-    context = {
-        "name": "Marsya Rizka Aulia",
-        "gallery_items": gallery_items,
-    }
-    return render(request, "gallery.html", context)
 
 
 def register(request):
