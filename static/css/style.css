@@ -670,33 +670,6 @@ h1, .brand {
 }
 /* Gallery : Done */
 
-/* Audio : Start */
-#music-button {
-    position: fixed;
-    right: 16px;
-    bottom: 32px;
-    padding: 12px 18px;
-
-    background-color: var(--ink);
-    color: var(--paper);
-
-    border: none;
-    border-radius: 50px;
-
-    font-family: inherit;
-    cursor: pointer;
-
-    z-index: 1000;
-
-    transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-#music-button:hover {
-    background-color: var(--accent);
-    transform: translateY(-2px);
-}
-/* Audio : Done */
-
 /* Mobile navigation : Start */
 @media (max-width: 600px) {
     .site-header {
@@ -1204,3 +1177,109 @@ h1, .brand {
     }
 }
 /* Skills : Done */
+
+/* Songfess : Start */
+.songfess-section {
+    padding: 2rem 0;
+}
+
+.songfess-card {
+    position: relative;
+    text-align: center;
+
+    padding: 2rem 1.5rem 5rem;
+
+    width: 100vw;
+    left: 50%;
+    margin-left: -50vw;
+
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    border-radius: 0;
+    box-shadow: none;
+
+    background-image: url('/static/img/ceramics.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.songfess-kicker {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+}
+
+.songfess-cursive {
+    display: block;
+    font-family: "Caveat", cursive;
+    font-size: 2.5em;
+    color: var(--accent);
+}
+
+.songfess-card #music-button {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+
+    padding: 12px 18px;
+
+    background-color: var(--ink);
+    color: var(--paper);
+
+    border: none;
+    border-radius: 50px;
+
+    font-family: inherit;
+    cursor: pointer;
+    z-index: 10;
+
+    transition: background-color 0.2s ease;
+}
+
+.songfess-card #music-button:hover {
+    background-color: var(--accent);
+}
+
+.songfess-card #close-music-button {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+
+    padding: 12px 18px;
+
+    background-color: var(--ink);
+    color: var(--paper);
+
+    border: none;
+    border-radius: 50px;
+
+    font-family: inherit;
+    cursor: pointer;
+    z-index: 10;
+
+    transition: background-color 0.2s ease;
+}
+
+.songfess-card #close-music-button:hover {
+    background-color: var(--accent);
+}
+
+.spotify-player {
+    margin-top: 2rem;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.spotify-player iframe {
+    display: block;
+    width: 100%;
+    border: none;
+}
+/* Songfess : Done */

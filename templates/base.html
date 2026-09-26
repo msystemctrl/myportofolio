@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css?v=2">
     <link rel="icon" href="{% static 'img/M favicon.ico' %}" type="image/x-icon">
 </head>
@@ -32,9 +33,6 @@
                 <a href="{% url 'main:show_gallery' %}">Gallery</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'main:logout' %}">Logout</a>
-                {% else %}
-                    <a href="{% url 'main:login' %}">Login</a>
-                    <a href="{% url 'main:register' %}">Register</a>
                 {% endif %}
             </nav>
         </div>

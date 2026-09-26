@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm, TextInput, Textarea, NumberInput, URLInput, DateInput, DateTimeInput, Select
 
-from main.models import Project, Education, Experience
+from main.models import Project, Education, Experience, Songfess
 
 
 class ProjectForm(ModelForm):
@@ -76,4 +76,20 @@ class ExperienceForm(ModelForm):
             "description": Textarea(attrs={"placeholder": "Ceritakan pengalamanmu", "rows": 4}),
             "category": Select(),
             "thumbnail": URLInput(attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}),
+        }
+
+
+class SongfessForm(ModelForm):
+    class Meta:
+        model = Songfess
+        fields = ["display_name", "message"]
+
+        labels = {
+            "display_name": "Nama",
+            "message": "Cerita singkat mood kamu (opsional)",
+        }
+
+        widgets = {
+            "display_name": TextInput(attrs={"placeholder": "Type here ...", "maxlength": 100}),
+            "message": Textarea(attrs={"placeholder": "Type here ...", "rows": 3}),
         }

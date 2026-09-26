@@ -71,3 +71,18 @@ class Project(models.Model):
     @property
     def tag_list(self):
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+class Songfess(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    requester = models.OneToOneField(User, on_delete=models.CASCADE, related_name="songfess")
+    display_name = models.CharField(max_length=100, help_text="Nama yang ingin ditampilkan")
+    message = models.TextField(blank=True, help_text="Cerita singkat / mood pengirim")
+    song_title = models.CharField(max_length=255, blank=True, help_text="Diisi oleh pemilik portofolio")
+    song_url = models.URLField(blank=True, help_text="Link Spotify/YouTube (opsional)")
+
+    def __str__(self):
+        return self.display_name
+
+    @property
+    def is_replied(self):
+        return bool(self.song_title)

@@ -28,6 +28,8 @@ from main.views import (
     logout_user,
 
     toggle_star,
+
+    submit_songfess,
 )
 
 app_name = "main"
@@ -59,4 +61,6 @@ urlpatterns = [
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
+
+    path("songfess/", submit_songfess, name="submit_songfess"),
 ]

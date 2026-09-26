@@ -47,7 +47,6 @@
         <section class="skills-sec" id="skills">
             <div class="container">
                 <div class="sec-header">
-                    <!-- <p class="sec-kicker">Under the Hood</p> -->
                     <h2 class="sec-title">MY SKILLS</h2>
                     <p class="sec-desc">What's powering the things I build</p>
                 </div>
@@ -72,6 +71,55 @@
                 </div>
             </div>
         </section>
+
+        <section class="songfess-section" id="songfess">
+            <div class="container">
+                {% if user.is_authenticated %}
+                    {% if songfess and songfess.is_replied %}
+                        <div class="songfess-card songfess-card--replied">
+                            <p class="songfess-kicker">A song for {{ songfess.display_name }}</p>
+                            <h2 class="songfess-cursive">{{ songfess.song_title }}</h2>
+                            {% if songfess.song_url %}
+                                <button
+                                    id="music-button"
+                                    type="button"
+                                    data-song-url="{{ songfess.song_url }}">
+                                    Show
+                                </button>
+
+                                <div id="spotify-player" class="spotify-player"></div>
+
+                                <button
+                                    id="close-music-button"
+                                    type="button"
+                                    hidden>
+                                    Close
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% elif songfess %}
+                        <div class="songfess-card songfess-card--pending">
+                            <p class="songfess-kicker">Hi, {{ songfess.display_name }}</p>
+                            <p>Got it. Sit tight for your song!</p>
+                        </div>
+                    {% else %}
+                        <div class="songfess-card">
+                            <p class="songfess-kicker">Hi, {{ user.username }}</p>
+                            <h2 class="sec-title"><span class="songfess-cursive">Songfess</span></h2>
+                            <a href="{% url 'main:submit_songfess' %}" class="songfess-link">Send</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="songfess-card songfess-card--guest">
+                        <div class="songfess-actions">
+                            <a href="{% url 'main:login' %}" class="songfess-link">Login</a>
+                            |
+                            <a href="{% url 'main:register' %}" class="songfess-link">Register</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
     </main>
 
     <script>
@@ -88,10 +136,75 @@
                 skillsTooltip.style.left = centerX + "px";
                 skillsTooltip.classList.add("is-visible");
             });
+
             item.addEventListener("mouseleave", function () {
                 skillsTooltip.classList.remove("is-visible");
             });
         });
+    </script>
+
+    <script>
+        const menuToggle = document.getElementById("menu-toggle");
+        const siteHeader = document.querySelector(".site-header");
+        const navLinks = document.querySelectorAll(".site-header nav a");
+
+        menuToggle.addEventListener("click", function () {
+            siteHeader.classList.toggle("menu-open");
+            menuToggle.setAttribute(
+                "aria-expanded",
+                siteHeader.classList.contains("menu-open")
+            );
+        });
+
+        navLinks.forEach(function (link) {
+            link.addEventListener("click", function () {
+                siteHeader.classList.remove("menu-open");
+                menuToggle.setAttribute("aria-expanded", "false");
+            });
+        });
+    </script>
+
+    <script>
+        const musicButton = document.getElementById("music-button");
+        const spotifyPlayer = document.getElementById("spotify-player");
+        const closeMusicButton = document.getElementById("close-music-button");
+
+        if (musicButton && spotifyPlayer && closeMusicButton) {
+            musicButton.addEventListener("click", function () {
+                const spotifyUrl = musicButton.dataset.songUrl;
+                if (!spotifyUrl) {
+                    return;
+                }
+
+                const match = spotifyUrl.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
+                if (!match) {
+                    console.error("Invalid Spotify track URL:", spotifyUrl);
+                    return;
+                }
+
+                const trackId = match[1];
+
+                spotifyPlayer.innerHTML = `
+                    <iframe
+                        src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator"
+                        width="100%"
+                        height="152"
+                        frameborder="0"
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy">
+                    </iframe>
+                `;
+
+                musicButton.hidden = true;
+                closeMusicButton.hidden = false;
+            });
+
+            closeMusicButton.addEventListener("click", function () {
+                spotifyPlayer.innerHTML = "";
+                closeMusicButton.hidden = true;
+                musicButton.hidden = false;
+            });
+        }
     </script>
 {% endblock %}
 
