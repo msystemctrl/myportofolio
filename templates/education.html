@@ -32,10 +32,15 @@
                                 </ul>
                                 <div class="project-card-actions">
                                     <div class="project-actions">
+                                        {% if user.is_superuser or is_editor %}
+                                            <a href="{% url 'main:update_education' education.id %}" class="button">
+                                                Edit
+                                            </a>
+                                        {% endif %}
+
                                         {% if user.is_superuser %}
-                                            <a href="{% url 'main:update_education' education.id %}" class="button">Edit</a>
                                             {% include "components/education_delete_modal.html" with education=education %}
-                                        {% endif %} 
+                                        {% endif %}
                                     </div>
                                 </div>
                             </article>

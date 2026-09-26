@@ -21,6 +21,9 @@ SKILLS = [
     {"icon": "python.png", "alt": "Python"},
 ]
 
+def is_editor(user):
+    return user.groups.filter(name="Editor").exists()
+
 def show_main(request):
     last_login = request.COOKIES.get('last_login', 
                                      'No previous login session or cookie found.')
@@ -59,6 +62,10 @@ def show_experience(request):
         "name": "Marsya Rizka Aulia",
         "experience_list": experience_list,
         "category_query": category_query,
+        "is_editor": (
+            request.user.is_authenticated
+            and is_editor(request.user)
+        ),
     }
     return render(request, "experience.html", context)
 
@@ -92,7 +99,7 @@ def create_experience(request):
 
 @login_required(login_url="/login/")
 def update_experience(request, experience_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -135,6 +142,10 @@ def show_education(request):
         "name": "Marsya Rizka Aulia",
         "education_list": education_list,
         "institution_query": institution_query,
+        "is_editor": (
+            request.user.is_authenticated
+            and is_editor(request.user)
+        ),
     }
     return render(request, "education.html", context)
 
@@ -168,7 +179,7 @@ def create_education(request):
 
 @login_required(login_url="/login/")
 def update_education(request, education_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     
     education = get_object_or_404(Education, pk=education_id)
@@ -215,6 +226,10 @@ def show_projects(request):
         "name": "Marsya Rizka Aulia",
         "project_list": projects,
         "title_query": title_query,
+        "is_editor": (
+            request.user.is_authenticated
+            and is_editor(request.user)
+        ),
     }
     return render(request, "projects.html", context)
 
@@ -230,7 +245,7 @@ def get_projects_json(request):
 
 @login_required(login_url="/login/")
 def update_project(request, project_id):
-    if not request.user.is_superuser:
+    if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     
     project = get_object_or_404(Project, pk=project_id)
@@ -239,7 +254,7 @@ def update_project(request, project_id):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Project record updated successfully!")
-        return redirect("main:show_project")
+        return redirect("main:show_projects")
 
     context = {
         "name": "Marsya Rizka Aulia",
