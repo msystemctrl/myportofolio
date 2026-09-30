@@ -30,6 +30,8 @@ from main.views import (
     toggle_star,
 
     submit_songfess,
+
+    create_project_ajax
 )
 
 app_name = "main"
@@ -63,4 +65,6 @@ urlpatterns = [
     path("logout/", logout_user, name="logout"),
 
     path("songfess/", submit_songfess, name="submit_songfess"),
+
+    path("projects/add-ajax/", create_project_ajax, name="create_project_ajax"),
 ]

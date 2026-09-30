@@ -1,4 +1,6 @@
 from django import forms
+from django.utils.html import strip_tags
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm, TextInput, Textarea, NumberInput, URLInput, DateInput, DateTimeInput, Select
 
 from main.models import Project, Education, Experience, Songfess
@@ -28,6 +30,21 @@ class ProjectForm(ModelForm):
             "project_url": URLInput(attrs={"placeholder": "https://github.com/username/repo"}),
             "project_image_url": URLInput(attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}),
         }
+    
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Nama proyek tidak boleh hanya berisi tag HTML.")
+        return title
+
+    def clean_meta(self):
+        return strip_tags(self.cleaned_data["meta"]).strip()
+
+    def clean_tags(self):
+        return strip_tags(self.cleaned_data["tags"]).strip()
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 
 class EducationForm(ModelForm):
