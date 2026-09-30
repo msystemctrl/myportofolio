@@ -31,7 +31,8 @@ from main.views import (
 
     submit_songfess,
 
-    create_project_ajax
+    create_project_ajax,
+    create_education_ajax
 )
 
 app_name = "main"
@@ -67,4 +68,5 @@ urlpatterns = [
     path("songfess/", submit_songfess, name="submit_songfess"),
 
     path("projects/add-ajax/", create_project_ajax, name="create_project_ajax"),
+    path("education/add-ajax/", create_education_ajax, name="create_education_ajax"),
 ]

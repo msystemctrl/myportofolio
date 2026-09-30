@@ -135,22 +135,32 @@ def delete_experience(request, experience_id):
 
 
 def show_education(request):
-    json_response = get_education_json(request)
-    education_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
-    education_list = [item.object for item in education_list]
+    # json_response = get_education_json(request)
+    # education_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
+    # education_list = [item.object for item in education_list]
     institution_query = request.GET.get("institution", "").strip()
 
     context = {
         "name": "Marsya Rizka Aulia",
-        "education_list": education_list,
+        # "education_list": education_list,
         "institution_query": institution_query,
         "is_editor": (
             request.user.is_authenticated
             and is_editor(request.user)
         ),
+        "form": EducationForm(),
     }
     return render(request, "education.html", context)
 
+# def get_education_json(request):
+#     institution_query = request.GET.get("institution", "").strip()
+#     education_qs = Education.objects.all().order_by('-start_date')
+
+#     if institution_query:
+#         education_qs = education_qs.filter(institution__icontains=institution_query)
+
+#     education_json = serializers.serialize("json", education_qs, use_natural_foreign_keys=True)
+#     return HttpResponse(education_json, content_type="application/json") # response yang digunakan sebagai API yang menyediakan response/data yang bisa digunakan oleh client
 def get_education_json(request):
     institution_query = request.GET.get("institution", "").strip()
     education_qs = Education.objects.all().order_by('-start_date')
@@ -158,8 +168,19 @@ def get_education_json(request):
     if institution_query:
         education_qs = education_qs.filter(institution__icontains=institution_query)
 
-    education_json = serializers.serialize("json", education_qs, use_natural_foreign_keys=True)
-    return HttpResponse(education_json, content_type="application/json") # response yang digunakan sebagai API yang menyediakan response/data yang bisa digunakan oleh client
+    data = []
+    for education in education_qs:
+        data.append({
+            "pk": str(education.id),
+            "fields": {
+                "institution": education.institution,
+                "degree": education.degree,
+                "period_display": education.period_display,
+                "highlight_list": education.highlight_list,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
 def create_education(request):
@@ -212,6 +233,24 @@ def delete_education(request, education_id):
         return redirect("main:show_education")
 
     return redirect("main:show_education")
+
+@require_POST
+def create_education_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add education records."},
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+    if form.is_valid():
+        education = form.save()
+        return JsonResponse(
+            {"message": "Education record added successfully.", "pk": str(education.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
 def show_projects(request):

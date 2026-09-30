@@ -68,6 +68,18 @@ class EducationForm(ModelForm):
             "highlights": Textarea(attrs={"placeholder": "Satu poin per baris", "rows": 4}),
         }
 
+    def clean_institution(self):
+        institution = strip_tags(self.cleaned_data["institution"]).strip()
+        if not institution:
+            raise ValidationError("Institution name cannot be only HTML tags.")
+        return institution
+
+    def clean_degree(self):
+        return strip_tags(self.cleaned_data["degree"]).strip()
+
+    def clean_highlights(self):
+        return strip_tags(self.cleaned_data["highlights"]).strip()
+
 
 class ExperienceForm(ModelForm):
     ended_at = forms.DateTimeField(
