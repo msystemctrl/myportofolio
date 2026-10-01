@@ -106,6 +106,15 @@ class ExperienceForm(ModelForm):
             "category": Select(),
             "thumbnail": URLInput(attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}),
         }
+    
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Title cannot be only HTML tags.")
+        return title
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 
 class SongfessForm(ModelForm):

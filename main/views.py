@@ -55,19 +55,21 @@ def show_main(request):
 
 
 def show_experience(request):
-    json_response = get_experience_json(request)
-    experience_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
-    experience_list = [item.object for item in experience_list]
+    # json_response = get_experience_json(request)
+    # experience_list = serializers.deserialize("json", json_response.content.decode("utf-8"))
+    # experience_list = [item.object for item in experience_list]
     category_query = request.GET.get("category", "").strip()
 
     context = {
         "name": "Marsya Rizka Aulia",
-        "experience_list": experience_list,
+        # "experience_list": experience_list,
         "category_query": category_query,
         "is_editor": (
             request.user.is_authenticated
             and is_editor(request.user)
         ),
+        "category_choices": Experience.EXPERIENCE_CHOICES,
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -78,8 +80,22 @@ def get_experience_json(request):
     if category_query:
         experience_qs =  experience_qs.filter(category=category_query)
 
-    experience_json = serializers.serialize("json", experience_qs, use_natural_foreign_keys=True)
-    return HttpResponse(experience_json, content_type="application/json")
+    # experience_json = serializers.serialize("json", experience_qs, use_natural_foreign_keys=True)
+    data = []
+    for experience in experience_qs:
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.category,
+                "category_display": experience.get_category_display(),
+                "is_ongoing": experience.is_ongoing,
+            }
+        })
+
+    # return HttpResponse(experience_json, content_type="application/json")
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
 def create_experience(request):
@@ -133,6 +149,24 @@ def delete_experience(request, experience_id):
 
     return redirect("main:show_experience")
 
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add experiences."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {"message": "Experience added successfully.", "pk": str(experience.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
 
 def show_education(request):
     # json_response = get_education_json(request)
@@ -152,15 +186,6 @@ def show_education(request):
     }
     return render(request, "education.html", context)
 
-# def get_education_json(request):
-#     institution_query = request.GET.get("institution", "").strip()
-#     education_qs = Education.objects.all().order_by('-start_date')
-
-#     if institution_query:
-#         education_qs = education_qs.filter(institution__icontains=institution_query)
-
-#     education_json = serializers.serialize("json", education_qs, use_natural_foreign_keys=True)
-#     return HttpResponse(education_json, content_type="application/json") # response yang digunakan sebagai API yang menyediakan response/data yang bisa digunakan oleh client
 def get_education_json(request):
     institution_query = request.GET.get("institution", "").strip()
     education_qs = Education.objects.all().order_by('-start_date')
@@ -168,6 +193,7 @@ def get_education_json(request):
     if institution_query:
         education_qs = education_qs.filter(institution__icontains=institution_query)
 
+    # education_json = serializers.serialize("json", education_qs, use_natural_foreign_keys=True)
     data = []
     for education in education_qs:
         data.append({
@@ -180,6 +206,7 @@ def get_education_json(request):
             }
         })
 
+    # return HttpResponse(education_json, content_type="application/json") # response yang digunakan sebagai API yang menyediakan response/data yang bisa digunakan oleh client
     return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
@@ -358,6 +385,24 @@ def delete_project(request, project_id):
 
     return redirect("main:show_projects")
 
+@require_POST
+def create_project_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan proyek."},
+            status=403,
+        )
+
+    form = ProjectForm(request.POST)
+    if form.is_valid():
+        project = form.save()
+        return JsonResponse(
+            {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
 
 def show_gallery(request):
     context = {
@@ -440,22 +485,3 @@ def submit_songfess(request):
         "form": form,
     }
     return render(request, "songfess_form.html", context)
-
-
-@require_POST
-def create_project_ajax(request):
-    if not request.user.is_superuser:
-        return JsonResponse(
-            {"message": "Hanya pemilik portofolio yang dapat menambahkan proyek."},
-            status=403,
-        )
-
-    form = ProjectForm(request.POST)
-    if form.is_valid():
-        project = form.save()
-        return JsonResponse(
-            {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
-            status=201,
-        )
-
-    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
