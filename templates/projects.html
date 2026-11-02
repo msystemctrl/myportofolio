@@ -59,7 +59,7 @@
 
     <script>
     // Konfigurasi
-    const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_json' %}";
+    const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_json' %}"; // general untuk semua section
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
     let projectsAbortController;
@@ -68,7 +68,7 @@
     const loadingState = document.getElementById('loading');
     const errorState = document.getElementById('error');
     const emptyState = document.getElementById('empty');
-    const gridContainer = document.getElementById('grid');
+    const gridContainer = document.getElementById('grid'); // general untuk semua section
     const searchForm = document.getElementById('project-search-form');
     const searchInput = document.getElementById('search-input');
     const SEARCH_DEBOUNCE_DELAY = 300;
