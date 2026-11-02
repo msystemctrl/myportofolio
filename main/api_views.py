@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Project
-from main.permissions import IsPortfolioOwnerOrReadOnly
-from main.serializers import ProjectSerializer
+from main.models import Project, Education
+from main.permissions import IsPortfolioOwnerOrReadOnly, IsPortfolioOwnerOrEditorOrReadOnly
+from main.serializers import ProjectSerializer, EducationSerializer
 
 
 @api_view(["GET", "HEAD", "POST"])
@@ -67,4 +67,42 @@ def project_star(request, project_id):
         project.starred_by.add(request.user)
 
     serializer = ProjectSerializer(project, context={"request": request})
+    return Response(serializer.data)
+
+
+@api_view(["GET", "HEAD", "POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
+def education_list(request):
+    if request.method in ("GET", "HEAD"):
+        records = Education.objects.order_by("-start_date", "id")
+        institution = request.query_params.get("institution", "").strip()
+        if institution:
+            records = records.filter(institution__icontains=institution)
+        return Response(EducationSerializer(records, many=True).data)
+
+    serializer = EducationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
+def education_detail(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+
+    if request.method in ("GET", "HEAD"):
+        return Response(EducationSerializer(education).data)
+
+    if request.method == "DELETE":
+        education.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = EducationSerializer(
+        education, data=request.data, partial=request.method == "PATCH",
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
     return Response(serializer.data)
