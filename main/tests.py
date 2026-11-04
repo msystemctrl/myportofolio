@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from datetime import date 
+from datetime import date
 from main.models import Experience, Education, Project
 
 
@@ -37,11 +37,13 @@ class ExperienceTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Teaching")
-        self.assertContains(response, "Ongoing")
+        self.assertContains(response, "/api/experience/")
+        self.assertContains(response, "experience-timeline")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
+
+        data = self.client.get("/api/experience/").json()
+        self.assertEqual(data[0]["fields"]["title"], self.experience.title)
+        self.assertEqual(data[0]["fields"]["description"], self.experience.description)
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
@@ -52,11 +54,10 @@ class ExperienceTest(TestCase):
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
         self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Completed")
-        self.assertNotContains(response, "Ongoing")
+        data = self.client.get("/api/experience/").json()
+        self.assertFalse(data[0]["fields"]["is_ongoing"])
 
 
 class EducationTest(TestCase):
@@ -64,7 +65,7 @@ class EducationTest(TestCase):
         self.education = Education.objects.create(
             institution="Universitas Indonesia",
             degree="Bachelor of Information Systems",
-            start_date=date(2025, 1, 1),   
+            start_date=date(2025, 1, 1),
             highlights="Admitted through SNBP.\nCurrently taking foundational courses.",
         )
 
@@ -82,12 +83,15 @@ class EducationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "education.html")
-        self.assertContains(response, self.education.institution)
-        self.assertContains(response, self.education.degree)
-        self.assertContains(response, "Admitted through SNBP.")
+        self.assertContains(response, "/api/education/")
+
+        data = self.client.get("/api/education/").json()
+        self.assertEqual(data[0]["fields"]["institution"], self.education.institution)
+        self.assertEqual(data[0]["fields"]["degree"], self.education.degree)
+        self.assertIn("Admitted through SNBP.", data[0]["fields"]["highlight_list"])
 
     def test_completed_education_period_display(self):
-        self.education.end_date = date(2029, 1, 1)   
+        self.education.end_date = date(2029, 1, 1)
         self.education.save()
 
         self.assertFalse(self.education.is_ongoing)
@@ -119,12 +123,17 @@ class ProjectTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "projects.html")
-        self.assertContains(response, self.project.title)
-        self.assertContains(response, self.project.meta)
-        self.assertContains(response, "JavaScript")
+        self.assertContains(response, "/api/v1/projects/")
+        self.assertContains(response, 'id="grid"')
+
+        data = self.client.get(reverse("api:project-list")).json()
+        self.assertEqual(data[0]["title"], self.project.title)
+        self.assertEqual(data[0]["meta"], self.project.meta)
+        self.assertIn("JavaScript", data[0]["tags"])
 
     def test_empty_projects_page(self):
         Project.objects.all().delete()
         response = self.client.get(reverse("main:show_projects"))
 
-        self.assertContains(response, "No projects have been added yet.")
+        self.assertContains(response, "No projects have been added or found.")
+        self.assertEqual(self.client.get(reverse("api:project-list")).json(), [])
