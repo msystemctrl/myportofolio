@@ -34,6 +34,7 @@ class Education(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     highlights = models.TextField(help_text="Satu poin per baris")
+    appreciated_by = models.ManyToManyField(User, related_name="appreciated_educations", blank=True)
 
     def __str__(self):
         return self.institution
