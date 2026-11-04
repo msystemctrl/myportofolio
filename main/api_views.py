@@ -75,13 +75,13 @@ def project_star(request, project_id):
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
 def education_list(request):
     if request.method in ("GET", "HEAD"):
-        records = Education.objects.order_by("-start_date", "id")
+        records = Education.objects.prefetch_related("appreciated_by").order_by("-start_date", "id")
         institution = request.query_params.get("institution", "").strip()
         if institution:
             records = records.filter(institution__icontains=institution)
-        return Response(EducationSerializer(records, many=True).data)
+        return Response(EducationSerializer(records, many=True, context={"request": request}).data)
 
-    serializer = EducationSerializer(data=request.data)
+    serializer = EducationSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -94,7 +94,7 @@ def education_detail(request, education_id):
     education = get_object_or_404(Education, pk=education_id)
 
     if request.method in ("GET", "HEAD"):
-        return Response(EducationSerializer(education).data)
+        return Response(EducationSerializer(education, context={"request": request}).data)
 
     if request.method == "DELETE":
         education.delete()
@@ -102,7 +102,23 @@ def education_detail(request, education_id):
 
     serializer = EducationSerializer(
         education, data=request.data, partial=request.method == "PATCH",
+        context={"request": request},
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def education_appreciate(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+
+    if education.appreciated_by.filter(pk=request.user.pk).exists():
+        education.appreciated_by.remove(request.user)
+    else:
+        education.appreciated_by.add(request.user)
+
+    serializer = EducationSerializer(education, context={"request": request})
     return Response(serializer.data)

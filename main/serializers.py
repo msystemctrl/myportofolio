@@ -50,12 +50,16 @@ class EducationSerializer(serializers.ModelSerializer):
     period_display = serializers.ReadOnlyField()
     is_ongoing = serializers.ReadOnlyField()
     highlight_list = serializers.ReadOnlyField()
+    appreciation_count = serializers.SerializerMethodField()
+    is_appreciated = serializers.SerializerMethodField()
+    appreciated_by_names = serializers.SerializerMethodField()
 
     class Meta:
         model = Education
         fields = [
             "id", "institution", "degree", "start_date", "end_date",
             "highlights", "period_display", "is_ongoing", "highlight_list",
+            "appreciation_count", "is_appreciated", "appreciated_by_names",
         ]
         read_only_fields = ["id"]
 
@@ -73,3 +77,15 @@ class EducationSerializer(serializers.ModelSerializer):
 
     def validate_highlights(self, value):
         return strip_tags(value)
+
+    def get_appreciation_count(self, obj):
+        return obj.appreciated_by.count()
+
+    def get_is_appreciated(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return request.user in obj.appreciated_by.all()
+
+    def get_appreciated_by_names(self, obj):
+        return ", ".join(user.username for user in obj.appreciated_by.all())
