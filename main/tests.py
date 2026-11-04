@@ -1,8 +1,14 @@
+import uuid
+from datetime import date
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.models import User
 
-from datetime import date
+from rest_framework import status
+from rest_framework.test import APITestCase
+
 from main.models import Experience, Education, Project
 
 
@@ -83,12 +89,12 @@ class EducationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "education.html")
-        self.assertContains(response, "/api/education/")
+        self.assertContains(response, "/api/v1/education/")
 
-        data = self.client.get("/api/education/").json()
-        self.assertEqual(data[0]["fields"]["institution"], self.education.institution)
-        self.assertEqual(data[0]["fields"]["degree"], self.education.degree)
-        self.assertIn("Admitted through SNBP.", data[0]["fields"]["highlight_list"])
+        data = self.client.get(reverse("api:education-list")).json()
+        self.assertEqual(data[0]["institution"], self.education.institution)
+        self.assertEqual(data[0]["degree"], self.education.degree)
+        self.assertIn("Admitted through SNBP.", data[0]["highlight_list"])
 
     def test_completed_education_period_display(self):
         self.education.end_date = date(2029, 1, 1)
@@ -137,3 +143,79 @@ class ProjectTest(TestCase):
 
         self.assertContains(response, "No projects have been added or found.")
         self.assertEqual(self.client.get(reverse("api:project-list")).json(), [])
+
+
+class EducationAppreciationAPITest(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password", email="owner@example.com",
+        )
+        self.visitor = User.objects.create_user(username="visitor", password="test-password")
+        self.other = User.objects.create_user(username="other", password="test-password")
+        self.education = Education.objects.create(
+            institution="Universitas Indonesia",
+            degree="Bachelor of Information Systems",
+            start_date=date(2025, 1, 1),
+            highlights="Poin satu",
+        )
+        self.detail_url = reverse("api:education-detail", args=[self.education.id])
+        self.appreciate_url = reverse("api:education-appreciate", args=[self.education.id])
+
+    def test_appreciate_requires_login(self):
+        response = self.client.post(self.appreciate_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.education.appreciated_by.count(), 0)
+
+    def test_appreciate_toggles(self):
+        self.client.force_authenticate(user=self.visitor)
+
+        response = self.client.post(self.appreciate_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_appreciated"])
+        self.assertEqual(response.data["appreciation_count"], 1)
+        self.assertEqual(response.data["appreciated_by_names"], "visitor")
+        self.assertEqual(self.education.appreciated_by.count(), 1)
+
+        response = self.client.post(self.appreciate_url)
+        self.assertFalse(response.data["is_appreciated"])
+        self.assertEqual(response.data["appreciation_count"], 0)
+        self.assertEqual(self.education.appreciated_by.count(), 0)
+
+    def test_appreciate_uses_request_user_only(self):
+        self.client.force_authenticate(user=self.visitor)
+        self.client.post(self.appreciate_url, {"user": self.other.id}, format="json")
+        self.assertEqual(list(self.education.appreciated_by.all()), [self.visitor])
+
+    def test_is_appreciated_depends_on_viewer(self):
+        self.client.force_authenticate(user=self.visitor)
+        self.client.post(self.appreciate_url)
+
+        response = self.client.get(self.detail_url)
+        self.assertTrue(response.data["is_appreciated"])
+
+        self.client.force_authenticate(user=self.other)
+        response = self.client.get(self.detail_url)
+        self.assertFalse(response.data["is_appreciated"])
+        self.assertEqual(response.data["appreciation_count"], 1)
+
+    def test_appreciation_fields_are_read_only(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.patch(self.detail_url, {
+            "appreciation_count": 99,
+            "is_appreciated": True,
+            "appreciated_by_names": "forged",
+            "appreciated_by": [self.other.id],
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["appreciation_count"], 0)
+        self.assertEqual(self.education.appreciated_by.count(), 0)
+
+    def test_appreciate_get_not_allowed(self):
+        self.client.force_authenticate(user=self.visitor)
+        response = self.client.get(self.appreciate_url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_appreciate_missing_education(self):
+        self.client.force_authenticate(user=self.visitor)
+        url = reverse("api:education-appreciate", args=[uuid.uuid4()])
+        self.assertEqual(self.client.post(url).status_code, status.HTTP_404_NOT_FOUND)
