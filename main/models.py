@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 class Experience(models.Model):
@@ -76,15 +77,20 @@ class Project(models.Model):
 
 class Songfess(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    requester = models.OneToOneField(User, on_delete=models.CASCADE, related_name="songfess")
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name="songfesses")
     display_name = models.CharField(max_length=100, help_text="Nama yang ingin ditampilkan")
-    message = models.TextField(blank=True, help_text="Cerita singkat / mood pengirim")
-    song_title = models.CharField(max_length=255, blank=True, help_text="Diisi oleh pemilik portofolio")
+    message = models.TextField(blank=True, help_text="Alasan atau cerita singkat di balik lagunya")
+    song_title = models.CharField(max_length=255, help_text="Judul lagu yang direkomendasikan")
     song_url = models.URLField(blank=True, help_text="Link Spotify/YouTube (opsional)")
+    reply = models.TextField(blank=True, help_text="Balasan dari pemilik portofolio")
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return self.display_name
+        return f"{self.song_title} - {self.display_name}"
 
     @property
     def is_replied(self):
-        return bool(self.song_title)
+        return bool(self.reply.strip())
