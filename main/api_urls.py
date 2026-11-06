@@ -14,4 +14,6 @@ urlpatterns = [
     path("experience/", api_views.experience_list, name="experience-list"),
     path("experience/<uuid:experience_id>/", api_views.experience_detail, name="experience-detail"),
     path("experience/<uuid:experience_id>/appreciate/", api_views.experience_appreciate, name="experience-appreciate"),
+    path("songfess/", api_views.songfess_list, name="songfess-list"),
+    path("songfess/<uuid:songfess_id>/", api_views.songfess_detail, name="songfess-detail"),
 ]

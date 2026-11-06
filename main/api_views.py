@@ -1,13 +1,15 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Project, Education, Experience
-from main.permissions import IsPortfolioOwnerOrReadOnly, IsPortfolioOwnerOrEditorOrReadOnly
-from main.serializers import ProjectSerializer, EducationSerializer, ExperienceSerializer
+from main.models import Project, Education, Experience, Songfess
+from main.permissions import IsPortfolioOwnerOrReadOnly, IsPortfolioOwnerOrEditorOrReadOnly, IsSongfessSenderOrStaffOrReadOnly, is_songfess_staff
+from main.serializers import ProjectSerializer, EducationSerializer, ExperienceSerializer, PublicSongfessSerializer, SongfessSerializer
 
 
 @api_view(["GET", "HEAD", "POST"])
@@ -180,4 +182,84 @@ def experience_appreciate(request, experience_id):
         experience.appreciated_by.add(request.user)
 
     serializer = ExperienceSerializer(experience, context={"request": request})
+    return Response(serializer.data)
+
+
+def _visible_songfess(user):
+    """Songfess yang boleh dilihat user: staff semua, user login yang
+    dibalas atau miliknya, pengunjung hanya yang dibalas"""
+    queryset = Songfess.objects.select_related("requester")
+    if is_songfess_staff(user):
+        return queryset
+    if user.is_authenticated:
+        return queryset.filter(~Q(reply="") | Q(requester=user))
+    return queryset.exclude(reply="")
+
+
+def _songfess_read_serializer(request, songfess):
+    """Staff dan pengirimnya melihat data lengkap, orang lain hanya data publik"""
+    context = {"request": request}
+    if is_songfess_staff(request.user) or songfess.requester_id == request.user.id:
+        return SongfessSerializer(songfess, context=context)
+    return PublicSongfessSerializer(songfess, context=context)
+
+
+@api_view(["GET", "HEAD", "POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsSongfessSenderOrStaffOrReadOnly])
+def songfess_list(request):
+    if request.method in ("GET", "HEAD"):
+        scope = request.query_params.get("scope", "").strip()
+        search = request.query_params.get("search", "").strip()
+
+        if scope == "mine":
+            if not request.user.is_authenticated:
+                raise NotAuthenticated()
+            records = Songfess.objects.filter(requester=request.user)
+            serializer_class = SongfessSerializer
+        elif is_songfess_staff(request.user):
+            records = Songfess.objects.all()
+            serializer_class = SongfessSerializer
+        else:
+            records = Songfess.objects.exclude(reply="")
+            serializer_class = PublicSongfessSerializer
+
+        if search:
+            records = records.filter(
+                Q(song_title__icontains=search) | Q(display_name__icontains=search)
+            )
+        serializer = serializer_class(
+            records.select_related("requester"), many=True, context={"request": request},
+        )
+        return Response(serializer.data)
+
+    serializer = SongfessSerializer(data=request.data, context={"request": request})
+    serializer.is_valid(raise_exception=True)
+    serializer.save(requester=request.user)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsSongfessSenderOrStaffOrReadOnly])
+def songfess_detail(request, songfess_id):
+    songfess = get_object_or_404(_visible_songfess(request.user), pk=songfess_id)
+
+    if request.method in ("GET", "HEAD"):
+        return Response(_songfess_read_serializer(request, songfess).data)
+
+    permission = IsSongfessSenderOrStaffOrReadOnly()
+    if not permission.has_object_permission(request, None, songfess):
+        raise PermissionDenied(permission.message)
+
+    if request.method == "DELETE":
+        songfess.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = SongfessSerializer(
+        songfess, data=request.data, partial=request.method == "PATCH",
+        context={"request": request},
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
     return Response(serializer.data)
