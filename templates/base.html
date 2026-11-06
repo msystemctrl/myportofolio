@@ -31,8 +31,12 @@
                 <a href="{% url 'main:show_education' %}">Education</a>
                 <a href="{% url 'main:show_projects' %}">Projects</a>
                 <a href="{% url 'main:show_gallery' %}">Gallery</a>
+                {% comment "Songfess disembunyikan sementara" %}
                 {% if user.is_authenticated %}
                     <a href="{% url 'main:show_songfess' %}">Songfess</a>
+                {% endif %}
+                {% endcomment %}
+                {% if user.is_authenticated %}
                     <a href="{% url 'main:logout' %}">Logout</a>
                 {% endif %}
             </nav>

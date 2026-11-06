@@ -77,8 +77,10 @@
                 {% if user.is_authenticated %}
                     <div class="songfess-card">
                         <p class="songfess-kicker">Hi, {{ user.username }}</p>
+                        {% comment "Songfess disembunyikan sementara" %}
                         <h2 class="sec-title"><span class="songfess-cursive">Songfess</span></h2>
                         <a href="{% url 'main:show_songfess' %}" class="button">Send me a song</a>
+                        {% endcomment %}
                     </div>
                 {% else %}
                     <div class="songfess-card songfess-card--guest">
