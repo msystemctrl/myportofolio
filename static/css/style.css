@@ -1400,3 +1400,74 @@ h1, .brand {
 .hide {
     display: none !important;
 }
+
+/* Songfess page : Start */
+.songfess-subtitle {
+    margin: 2rem 0 1rem;
+    color: var(--ink);
+}
+
+.songfess-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.songfess-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.25rem;
+    background-color: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: 4px 4px 0 var(--ink);
+}
+
+.songfess-item h3 {
+    margin: 0;
+    color: var(--ink);
+}
+
+.songfess-from {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.songfess-message {
+    margin: 0;
+    font-style: italic;
+}
+
+.songfess-reply {
+    padding: 0.75rem 1rem;
+    background-color: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+}
+
+.songfess-reply p {
+    margin: 0;
+}
+
+.songfess-reply .songfess-reply__label {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+}
+
+.songfess-badge {
+    align-self: flex-start;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background-color: var(--line);
+    color: var(--text-muted);
+}
+/* Songfess page : Done */

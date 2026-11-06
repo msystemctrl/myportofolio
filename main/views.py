@@ -13,6 +13,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from main.forms import ProjectForm, EducationForm, ExperienceForm, SongfessForm
 from main.models import Project, Education, Experience, Songfess
+from main.permissions import is_songfess_staff
 
 SKILLS = [
     {"icon": "css3.png", "alt": "CSS3"},
@@ -30,10 +31,6 @@ def show_main(request):
     last_login = request.COOKIES.get('last_login', 
                                      'No previous login session or cookie found.')
 
-    songfess = None
-    if request.user.is_authenticated:
-        songfess = Songfess.objects.filter(requester=request.user).first()
-    
     context = {
         "name": "Marsya Rizka Aulia",
         "npm": "2506537606",
@@ -49,7 +46,6 @@ def show_main(request):
         ),
         "last_login": last_login,
         "skills": SKILLS,
-        "songfess": songfess,
     }
     return render(request, "index.html", context)
 
@@ -465,23 +461,9 @@ def toggle_star(request, project_id):
 
 
 @login_required(login_url="/login/")
-def submit_songfess(request):
-    songfess, _ = Songfess.objects.get_or_create(
-        requester=request.user,
-        defaults={"display_name": request.user.username},
-    )
-
-    if songfess.is_replied:
-        return redirect("main:show_main")
-
-    form = SongfessForm(request.POST or None, instance=songfess)
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Got it. Sit tight for your song.")
-        return redirect("main:show_main")
-
+def show_songfess(request):
     context = {
-        "form": form,
+        "name": "Marsya Rizka Aulia",
+        "is_songfess_staff": is_songfess_staff(request.user),
     }
-    return render(request, "songfess_form.html", context)
+    return render(request, "songfess.html", context)

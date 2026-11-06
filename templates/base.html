@@ -32,6 +32,7 @@
                 <a href="{% url 'main:show_projects' %}">Projects</a>
                 <a href="{% url 'main:show_gallery' %}">Gallery</a>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'main:show_songfess' %}">Songfess</a>
                     <a href="{% url 'main:logout' %}">Logout</a>
                 {% endif %}
             </nav>

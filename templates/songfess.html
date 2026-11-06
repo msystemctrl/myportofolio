@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+    <title>Songfess - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+    <main>
+        <section class="songfess-page" id="songfess-page">
+            <div class="container">
+                <div class="project-header">
+                    <h2 class="section-title"><span class="songfess-cursive">Songfess</span></h2>
+                    {% if user.is_authenticated %}
+                        <button type="button" class="button project-add-button" id="open-send-modal">
+                            <span aria-hidden="true">+</span>
+                            Send a Song
+                        </button>
+                    {% else %}
+                        <a href="{% url 'main:login' %}" class="button project-add-button">Login to send a song</a>
+                    {% endif %}
+                </div>
+                <p class="section-intro">
+                    {% if is_songfess_staff %}
+                        Every song sent to you. Reply right from here.
+                    {% else %}
+                        Songs people sent me, and what I thought of them.
+                    {% endif %}
+                </p>
+
+                <form id="songfess-search-form" class="project-search">
+                    <input type="search"
+                           id="songfess-search-input"
+                           placeholder="Search by song or name"
+                           class="project-search__input"
+                           aria-label="Search by song title or name">
+                    <button type="submit" class="button">Search</button>
+                </form>
+
+                <div id="songfess-content">
+                    <h3 class="songfess-subtitle">
+                        {% if is_songfess_staff %}Inbox{% else %}Songs sent to me{% endif %}
+                    </h3>
+
+                    <div id="songfess-loading" class="empty-state hide"><p>Loading songs...</p></div>
+                    <div id="songfess-error" class="empty-state hide"><p>Failed to load songs. Please try again.</p></div>
+                    <div id="songfess-empty" class="empty-state hide"><p>No songs here yet.</p></div>
+                    <div id="songfess-grid" class="songfess-list hide"></div>
+
+                    {% if user.is_authenticated and not is_songfess_staff %}
+                        <h3 class="songfess-subtitle">My submissions</h3>
+                        <div id="songfess-mine-empty" class="empty-state hide"><p>You have not sent any songs yet.</p></div>
+                        <div id="songfess-mine-grid" class="songfess-list hide"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if user.is_authenticated %}
+        <!-- Modal kirim / edit lagu -->
+        <div id="songfess-modal"
+             class="project-form-modal"
+             popover="auto"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="songfess-modal-title">
+            <button type="button"
+                    class="project-form-modal__backdrop"
+                    popovertarget="songfess-modal"
+                    popovertargetaction="hide"
+                    aria-label="Close song form"></button>
+            <div class="project-form-modal__content">
+                <button type="button"
+                        class="project-form-modal__close"
+                        popovertarget="songfess-modal"
+                        popovertargetaction="hide"
+                        aria-label="Close song form">&times;</button>
+                <h2 id="songfess-modal-title">Send a Song</h2>
+                <form id="songfess-form" class="project-form">
+                    <input type="hidden" id="songfess-id">
+                    <div class="form-group">
+                        <label for="songfess-display-name">Your name</label>
+                        <input type="text" id="songfess-display-name" maxlength="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="songfess-song-title">Song title</label>
+                        <input type="text" id="songfess-song-title" maxlength="255" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="songfess-song-url">Spotify or YouTube link (optional)</label>
+                        <input type="url" id="songfess-song-url" placeholder="https://open.spotify.com/track/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="songfess-message">Why this song? (optional)</label>
+                        <textarea id="songfess-message" rows="3"></textarea>
+                    </div>
+                    <div class="project-form-modal__actions">
+                        <button type="button"
+                                class="button button-secondary"
+                                popovertarget="songfess-modal"
+                                popovertargetaction="hide">Cancel</button>
+                        <button type="submit" class="button">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if is_songfess_staff %}
+        <!-- Modal balasan: hanya pemilik dan Editor -->
+        <div id="reply-modal"
+             class="project-form-modal"
+             popover="auto"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="reply-modal-title">
+            <button type="button"
+                    class="project-form-modal__backdrop"
+                    popovertarget="reply-modal"
+                    popovertargetaction="hide"
+                    aria-label="Close reply form"></button>
+            <div class="project-form-modal__content">
+                <button type="button"
+                        class="project-form-modal__close"
+                        popovertarget="reply-modal"
+                        popovertargetaction="hide"
+                        aria-label="Close reply form">&times;</button>
+                <h2 id="reply-modal-title">Reply</h2>
+                <form id="reply-form" class="project-form">
+                    <input type="hidden" id="reply-id">
+                    <p id="reply-song-info" class="songfess-from"></p>
+                    <div class="form-group">
+                        <label for="reply-text">Your reply (max 1000 characters)</label>
+                        <textarea id="reply-text" rows="4" maxlength="1000"></textarea>
+                    </div>
+                    <div class="project-form-modal__actions">
+                        <button type="button"
+                                class="button button-secondary"
+                                popovertarget="reply-modal"
+                                popovertargetaction="hide">Cancel</button>
+                        <button type="submit" class="button">Save Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% csrf_token %}
+    <script>
+    // Konfigurasi
+    const SONGFESS_LIST_ENDPOINT = "{% url 'api:songfess-list' %}";
+    const SONGFESS_DETAIL_ENDPOINT = "{% url 'api:songfess-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const ZERO_UUID = '00000000-0000-0000-0000-000000000000';
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const IS_STAFF = "{{ is_songfess_staff|yesno:'true,false' }}" === "true";
+    const CURRENT_USERNAME = "{{ user.username|escapejs }}";
+    const SEARCH_DEBOUNCE_DELAY = 300;
+
+    // Elemen DOM
+    const loadingState = document.getElementById('songfess-loading');
+    const errorState = document.getElementById('songfess-error');
+    const emptyState = document.getElementById('songfess-empty');
+    const mainGrid = document.getElementById('songfess-grid');
+    const mineGrid = document.getElementById('songfess-mine-grid');
+    const mineEmpty = document.getElementById('songfess-mine-empty');
+    const content = document.getElementById('songfess-content');
+    const searchForm = document.getElementById('songfess-search-form');
+    const searchInput = document.getElementById('songfess-search-input');
+    const songfessModal = document.getElementById('songfess-modal');
+    const songfessForm = document.getElementById('songfess-form');
+    const replyModal = document.getElementById('reply-modal');
+    const replyForm = document.getElementById('reply-form');
+
+    let mainById = {};
+    let mineById = {};
+    let mainAbortController;
+    let mineAbortController;
+    let searchDebounceTimer;
+
+    function detailEndpoint(id) {
+        return SONGFESS_DETAIL_ENDPOINT.replace(ZERO_UUID, id);
+    }
+
+    // Hanya tautan https yang boleh dipakai sebagai href / iframe
+    function safeHttpsUrl(url) {
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'https:' ? parsed.href : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    // Mengubah tautan Spotify / YouTube menjadi alamat embed
+    function getEmbed(url) {
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname;
+            if (host === 'open.spotify.com') {
+                const match = parsed.pathname.match(/\/track\/([A-Za-z0-9]+)/);
+                if (match) {
+                    return { src: `https://open.spotify.com/embed/track/${match[1]}?utm_source=generator`, height: 152 };
+                }
+            }
+            let videoId = null;
+            if (host === 'youtu.be') {
+                videoId = parsed.pathname.slice(1);
+            } else if (['www.youtube.com', 'youtube.com', 'music.youtube.com'].includes(host) && parsed.pathname === '/watch') {
+                videoId = parsed.searchParams.get('v');
+            }
+            if (videoId && /^[\w-]{11}$/.test(videoId)) {
+                return { src: `https://www.youtube-nocookie.com/embed/${videoId}`, height: 220 };
+            }
+        } catch (error) {
+            return null;
+        }
+        return null;
+    }
+
+    function displayMainSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        mainGrid.classList.toggle('hide', !showGrid);
+    }
+
+    // Membuat kartu songfess dari data API
+    function buildSongfessCard(item, isMineList) {
+        const article = document.createElement('article');
+        article.className = 'songfess-item';
+        article.dataset.id = item.id;
+
+        const replied = Boolean((item.reply || '').trim());
+        const isMine = isMineList || item.is_mine === true;
+        const link = safeHttpsUrl(item.song_url);
+        const embed = link ? getEmbed(link) : null;
+
+        const dateText = item.created_at
+            ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '';
+        const sender = IS_STAFF && item.requester_username ? ` (@${escapeHtml(item.requester_username)})` : '';
+        const fromText = `from ${escapeHtml(item.display_name)}${sender}${dateText ? ' · ' + escapeHtml(dateText) : ''}`;
+
+        let playerHtml = '';
+        if (embed) {
+            playerHtml = `<button type="button" class="songfess-btn" data-action="play"
+                                  data-url="${escapeHtml(link)}">Play</button>`;
+        } else if (link) {
+            playerHtml = `<a href="${escapeHtml(link)}" class="button button-secondary"
+                             target="_blank" rel="noopener noreferrer">Open link</a>`;
+        }
+
+        const messageHtml = item.message
+            ? `<p class="songfess-message">"${escapeHtml(item.message)}"</p>` : '';
+
+        let replyHtml = '';
+        if (replied) {
+            replyHtml = `<div class="songfess-reply">
+                <p class="songfess-reply__label">My reply</p>
+                <p>${escapeHtml(item.reply)}</p>
+            </div>`;
+        } else if (IS_STAFF || isMine) {
+            replyHtml = '<span class="songfess-badge">Awaiting reply</span>';
+        }
+
+        const actions = [];
+        if (IS_STAFF) {
+            actions.push(`<button type="button" class="button" data-action="reply">${replied ? 'Edit reply' : 'Reply'}</button>`);
+        }
+        if (isMine && !replied) {
+            actions.push('<button type="button" class="button button-secondary" data-action="edit">Edit</button>');
+        }
+        if (IS_STAFF || isMine) {
+            actions.push('<button type="button" class="button button-danger" data-action="delete">Delete</button>');
+        }
+
+        article.innerHTML = `
+            <h3>${escapeHtml(item.song_title)}</h3>
+            <p class="songfess-from">${fromText}</p>
+            ${messageHtml}
+            <div class="spotify-player" data-player></div>
+            ${replyHtml}
+            <div class="project-card-actions">
+                <div class="project-actions">
+                    ${playerHtml}
+                    ${actions.join('')}
+                </div>
+            </div>
+        `;
+        return article;
+    }
+
+    // Daftar utama: publik (sudah dibalas) atau inbox (pemilik / Editor)
+    async function fetchMain(search = '') {
+        if (mainAbortController) mainAbortController.abort();
+        mainAbortController = new AbortController();
+
+        try {
+            displayMainSection({ showLoading: true });
+            const url = new URL(SONGFESS_LIST_ENDPOINT, window.location.origin);
+            if (search) url.searchParams.set('search', search);
+
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: mainAbortController.signal,
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const records = await response.json();
+            mainById = Object.fromEntries(records.map(record => [record.id, record]));
+            mainGrid.replaceChildren(...records.map(record => buildSongfessCard(record, false)));
+            displayMainSection({ showGrid: records.length > 0, showEmpty: records.length === 0 });
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Error loading songfess:', error);
+            displayMainSection({ showError: true });
+        }
+    }
+
+    // Kiriman milik sendiri (akun login non-staff)
+    async function fetchMine(search = '') {
+        if (!mineGrid) return;
+        if (mineAbortController) mineAbortController.abort();
+        mineAbortController = new AbortController();
+
+        try {
+            const url = new URL(SONGFESS_LIST_ENDPOINT, window.location.origin);
+            url.searchParams.set('scope', 'mine');
+            if (search) url.searchParams.set('search', search);
+
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: mineAbortController.signal,
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const records = await response.json();
+            mineById = Object.fromEntries(records.map(record => [record.id, record]));
+            mineGrid.replaceChildren(...records.map(record => buildSongfessCard(record, true)));
+            mineGrid.classList.toggle('hide', records.length === 0);
+            mineEmpty.classList.toggle('hide', records.length > 0);
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Error loading my songfess:', error);
+        }
+    }
+
+    function refreshAll() {
+        const search = searchInput.value.trim();
+        return Promise.all([fetchMain(search), fetchMine(search)]);
+    }
+
+    function apiErrorMessage(data, status) {
+        const messages = Object.values(data).flat().filter(value => typeof value === 'string');
+        return messages.join(' ') || `Request failed (HTTP ${status}).`;
+    }
+
+    // Satu fungsi untuk POST / PATCH / DELETE (JSON + token CSRF)
+    async function writeSongfess(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
+        return data;
+    }
+
+    // Modal kirim / edit
+    function openSongfessModal(record) {
+        songfessForm.reset();
+        document.getElementById('songfess-id').value = record ? record.id : '';
+        document.getElementById('songfess-display-name').value = record ? record.display_name : CURRENT_USERNAME;
+        document.getElementById('songfess-song-title').value = record ? record.song_title : '';
+        document.getElementById('songfess-song-url').value = record ? (record.song_url || '') : '';
+        document.getElementById('songfess-message').value = record ? (record.message || '') : '';
+        document.getElementById('songfess-modal-title').textContent = record ? 'Edit Song' : 'Send a Song';
+        songfessModal.showPopover();
+    }
+
+    const openSendButton = document.getElementById('open-send-modal');
+    if (openSendButton) openSendButton.addEventListener('click', () => openSongfessModal(null));
+
+    async function submitSongfess(event) {
+        event.preventDefault();
+        const submitButton = songfessForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const id = document.getElementById('songfess-id').value;
+            const payload = {
+                display_name: document.getElementById('songfess-display-name').value,
+                song_title: document.getElementById('songfess-song-title').value,
+                song_url: document.getElementById('songfess-song-url').value.trim(),
+                message: document.getElementById('songfess-message').value,
+            };
+            if (!id && !payload.song_url) delete payload.song_url;
+
+            if (id) {
+                await writeSongfess(detailEndpoint(id), 'PATCH', payload);
+            } else {
+                await writeSongfess(SONGFESS_LIST_ENDPOINT, 'POST', payload);
+            }
+            songfessModal.hidePopover();
+            showToast('Success', id ? 'Song updated!' : 'Song sent! Thank you.', 'success');
+            await refreshAll();
+        } catch (error) {
+            showToast('Could not save song', error.message, 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (songfessForm) songfessForm.addEventListener('submit', submitSongfess);
+
+    // Modal balasan (pemilik / Editor)
+    function openReplyModal(record) {
+        document.getElementById('reply-id').value = record.id;
+        document.getElementById('reply-song-info').textContent =
+            `${record.song_title}, from ${record.display_name}`;
+        document.getElementById('reply-text').value = record.reply || '';
+        replyModal.showPopover();
+    }
+
+    async function submitReply(event) {
+        event.preventDefault();
+        const submitButton = replyForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const id = document.getElementById('reply-id').value;
+            await writeSongfess(detailEndpoint(id), 'PATCH', {
+                reply: document.getElementById('reply-text').value,
+            });
+            replyModal.hidePopover();
+            showToast('Success', 'Reply saved.', 'success');
+            await refreshAll();
+        } catch (error) {
+            showToast('Could not save reply', error.message, 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (replyForm) replyForm.addEventListener('submit', submitReply);
+
+    // Tombol play, edit, balas, hapus (event delegation)
+    content.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+
+        const card = button.closest('article[data-id]');
+        const id = card.dataset.id;
+        const record = mineById[id] || mainById[id];
+        const action = button.dataset.action;
+
+        if (action === 'play') {
+            const player = card.querySelector('[data-player]');
+            if (player.innerHTML.trim() !== '') {
+                player.innerHTML = '';
+                button.textContent = 'Play';
+                return;
+            }
+            const embed = getEmbed(button.dataset.url);
+            if (!embed) return;
+            const frame = document.createElement('iframe');
+            frame.src = embed.src;
+            frame.width = '100%';
+            frame.height = String(embed.height);
+            frame.setAttribute('frameborder', '0');
+            frame.setAttribute('loading', 'lazy');
+            frame.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+            player.appendChild(frame);
+            button.textContent = 'Close';
+            return;
+        }
+
+        if (action === 'edit') { openSongfessModal(record); return; }
+        if (action === 'reply') { openReplyModal(record); return; }
+
+        if (action === 'delete') {
+            if (!window.confirm('Delete this song?')) return;
+            button.disabled = true;
+            try {
+                await writeSongfess(detailEndpoint(id), 'DELETE');
+                showToast('Success', 'Song deleted.', 'success');
+                await refreshAll();
+            } catch (error) {
+                showToast('Request failed', error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+    });
+
+    // Pencarian dengan debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(refreshAll, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        refreshAll();
+    });
+
+    // Mulai aplikasi
+    refreshAll();
+    </script>
+{% endblock %}

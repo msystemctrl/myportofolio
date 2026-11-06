@@ -31,7 +31,7 @@ from main.views import (
     login_user,
     logout_user,
 
-    submit_songfess,
+    show_songfess,
 )
 
 app_name = "main"
@@ -67,5 +67,5 @@ urlpatterns = [
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
 
-    path("songfess/", submit_songfess, name="submit_songfess"),
+    path("songfess/", show_songfess, name="show_songfess"),
 ]
