@@ -11,4 +11,7 @@ urlpatterns = [
     path("education/", api_views.education_list, name="education-list"),
     path("education/<uuid:education_id>/", api_views.education_detail, name="education-detail"),
     path("education/<uuid:education_id>/appreciate/", api_views.education_appreciate, name="education-appreciate"),
+    path("experience/", api_views.experience_list, name="experience-list"),
+    path("experience/<uuid:experience_id>/", api_views.experience_detail, name="experience-detail"),
+    path("experience/<uuid:experience_id>/appreciate/", api_views.experience_appreciate, name="experience-appreciate"),
 ]

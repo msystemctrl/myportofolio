@@ -1,7 +1,7 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
 
-from main.models import Project, Education
+from main.models import Project, Education, Experience
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -77,6 +77,47 @@ class EducationSerializer(serializers.ModelSerializer):
 
     def validate_highlights(self, value):
         return strip_tags(value)
+
+    def get_appreciation_count(self, obj):
+        return obj.appreciated_by.count()
+
+    def get_is_appreciated(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return request.user in obj.appreciated_by.all()
+
+    def get_appreciated_by_names(self, obj):
+        return ", ".join(user.username for user in obj.appreciated_by.all())
+
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
+    is_ongoing = serializers.ReadOnlyField()
+    appreciation_count = serializers.SerializerMethodField()
+    is_appreciated = serializers.SerializerMethodField()
+    appreciated_by_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Experience
+        fields = [
+            "id", "title", "description", "category", "category_display",
+            "thumbnail", "started_at", "ended_at", "is_ongoing",
+            "appreciation_count", "is_appreciated", "appreciated_by_names",
+        ]
+        read_only_fields = ["id", "started_at"]
+
+    def validate_title(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Title cannot be empty.")
+        return value
+
+    def validate_description(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Description cannot be empty.")
+        return value
 
     def get_appreciation_count(self, obj):
         return obj.appreciated_by.count()
