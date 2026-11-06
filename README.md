@@ -25,6 +25,7 @@ A personal portfolio website featuring an organizational history, academic backg
 | 3 | Form & Data Delivery | [TUGAS3.md](/essay/Tugas3.md) |
 | 4 | Authentication, Session and Cookies Implementation | [TUGAS4.md](/essay/Tugas4.md) |
 | 5 | Web Interactivity with JavaScript | [TUGAS5.md](/essay/Tugas5.md) |
+| 6 | Django REST Framework Implementation | [TUGAS6.md](/essay/Tugas6.md) |
 
 ## Credits
 
