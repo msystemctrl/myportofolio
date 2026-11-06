@@ -43,13 +43,14 @@ class ExperienceTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, "/api/experience/")
+        self.assertContains(response, "/api/v1/experience/")
         self.assertContains(response, "experience-timeline")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
-        data = self.client.get("/api/experience/").json()
-        self.assertEqual(data[0]["fields"]["title"], self.experience.title)
-        self.assertEqual(data[0]["fields"]["description"], self.experience.description)
+        data = self.client.get(reverse("api:experience-list")).json()
+        self.assertEqual(data[0]["title"], self.experience.title)
+        self.assertEqual(data[0]["description"], self.experience.description)
+        self.assertEqual(data[0]["category_display"], "Teaching")
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
@@ -62,8 +63,8 @@ class ExperienceTest(TestCase):
         self.experience.save()
 
         self.assertFalse(self.experience.is_ongoing)
-        data = self.client.get("/api/experience/").json()
-        self.assertFalse(data[0]["fields"]["is_ongoing"])
+        data = self.client.get(reverse("api:experience-list")).json()
+        self.assertFalse(data[0]["is_ongoing"])
 
 
 class EducationTest(TestCase):
