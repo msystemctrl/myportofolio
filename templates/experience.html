@@ -59,13 +59,75 @@
         {% include "components/experience_form_modal.html" %}
     {% endif %}
 
+    {% if user.is_superuser or is_editor %}
+        <!-- Modal edit: dipakai pemilik dan Editor (PATCH ke API) -->
+        <div id="edit-experience-modal"
+             class="project-form-modal"
+             popover="auto"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="edit-experience-modal-title">
+            <button type="button"
+                    class="project-form-modal__backdrop"
+                    popovertarget="edit-experience-modal"
+                    popovertargetaction="hide"
+                    aria-label="Close edit experience form"></button>
+            <div class="project-form-modal__content">
+                <button type="button"
+                        class="project-form-modal__close"
+                        popovertarget="edit-experience-modal"
+                        popovertargetaction="hide"
+                        aria-label="Close edit experience form">&times;</button>
+                <h2 id="edit-experience-modal-title">Edit Experience</h2>
+                <form id="edit-experience-form" class="project-form">
+                    <input type="hidden" id="edit-experience-id">
+                    <div class="form-group">
+                        <label for="edit-title">Title</label>
+                        <input type="text" id="edit-title" name="title" maxlength="255" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Description</label>
+                        <textarea id="edit-description" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-category">Category</label>
+                        <select id="edit-category" name="category">
+                            {% for value, label in category_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-thumbnail">Thumbnail URL (optional)</label>
+                        <input type="url" id="edit-thumbnail" name="thumbnail">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ended-at">Ended at (empty if ongoing)</label>
+                        <input type="datetime-local" id="edit-ended-at" name="ended_at">
+                    </div>
+                    <div class="project-form-modal__actions">
+                        <button type="button"
+                                class="button button-secondary"
+                                popovertarget="edit-experience-modal"
+                                popovertargetaction="hide">Cancel</button>
+                        <button type="submit" class="button">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% csrf_token %}
     <script>
     // Konfigurasi
-    const EXPERIENCE_JSON_ENDPOINT = "{% url 'main:get_experience_json' %}";
-    const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
+    const EXPERIENCE_LIST_ENDPOINT = "{% url 'api:experience-list' %}";
+    const EXPERIENCE_DETAIL_ENDPOINT = "{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const EXPERIENCE_APPRECIATE_ENDPOINT = "{% url 'api:experience-appreciate' '00000000-0000-0000-0000-000000000000' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
     let experienceAbortController;
+    let experienceById = {};
 
     // Elemen DOM
     const experienceLoadingState = document.getElementById('experience-loading');
@@ -74,6 +136,11 @@
     const experienceTimeline = document.getElementById('experience-timeline');
     const experienceCategoryFilter = document.getElementById('experience-category-filter');
     const experienceForm = document.getElementById('experience-form');
+    const editExperienceForm = document.getElementById('edit-experience-form');
+
+    function experienceEndpoint(pattern, id) {
+        return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+    }
 
     function displayExperienceSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
         experienceLoadingState.classList.toggle('hide', !showLoading);
@@ -82,30 +149,39 @@
         experienceTimeline.classList.toggle('hide', !showGrid);
     }
 
-    // Membuat elemen timeline item
-    function buildExperienceCardElement(item) {
-        const experience = item.fields;
-        const experienceId = item.pk;
-
+    // Membuat elemen timeline item dari data API (tanpa item.fields / item.pk)
+    function buildExperienceCardElement(experience) {
         const articleElement = document.createElement('article');
         articleElement.className = `timeline-item${experience.is_ongoing ? ' is-current' : ''}`;
 
         const statusText = experience.is_ongoing ? 'Ongoing' : 'Completed';
 
-        const editUrl = "{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
-            .replace('00000000-0000-0000-0000-000000000000', experienceId);
-        const deleteUrl = "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
-            .replace('00000000-0000-0000-0000-000000000000', experienceId);
+        const appreciateTitle = experience.appreciation_count > 0
+            ? `Diapresiasi oleh ${escapeHtml(experience.appreciated_by_names)}`
+            : 'Jadilah yang pertama memberi apresiasi';
+
+        const appreciateHtml = IS_AUTHENTICATED
+            ? `<button type="button"
+                       class="button button-star${experience.is_appreciated ? ' is-starred' : ''}"
+                       data-action="appreciate" data-id="${escapeHtml(experience.id)}"
+                       title="${appreciateTitle}">
+                    <span aria-hidden="true">★</span>
+                    ${experience.is_appreciated ? 'Batal apresiasi' : 'Apresiasi'}
+                    <span class="star-count">${experience.appreciation_count}</span>
+               </button>`
+            : `<a href="/login/" class="button button-star" title="Login untuk memberi apresiasi">
+                    <span aria-hidden="true">★</span> Apresiasi
+                    <span class="star-count">${experience.appreciation_count}</span>
+               </a>`;
 
         const editHtml = (IS_SUPERUSER || IS_EDITOR)
-            ? `<a href="${editUrl}" class="button">Edit</a>`
+            ? `<button type="button" class="button" data-action="edit"
+                       data-id="${escapeHtml(experience.id)}">Edit</button>`
             : '';
 
         const deleteHtml = IS_SUPERUSER
-            ? `<form method="post" action="${deleteUrl}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="button button-danger" onclick="return confirm('Are you sure you want to delete this experience?');">Delete</button>
-            </form>`
+            ? `<button type="button" class="button button-danger" data-action="delete"
+                       data-id="${escapeHtml(experience.id)}">Delete</button>`
             : '';
 
         articleElement.innerHTML = `
@@ -117,17 +193,17 @@
                 <p class="experience-status">${statusText}</p>
                 <div class="project-card-actions">
                     <div class="project-actions">
+                        ${appreciateHtml}
                         ${editHtml}
                         ${deleteHtml}
                     </div>
                 </div>
             </div>
         `;
-
         return articleElement;
     }
 
-    // Fetch data experience
+    // Mengambil data experience dari API
     async function fetchExperience(categoryFilter = "") {
         if (experienceAbortController) experienceAbortController.abort();
         experienceAbortController = new AbortController();
@@ -135,28 +211,19 @@
         try {
             displayExperienceSection({ showLoading: true });
 
-            const url = categoryFilter
-                ? `${EXPERIENCE_JSON_ENDPOINT}?category=${encodeURIComponent(categoryFilter)}`
-                : EXPERIENCE_JSON_ENDPOINT;
+            const url = new URL(EXPERIENCE_LIST_ENDPOINT, window.location.origin);
+            if (categoryFilter) url.searchParams.set('category', categoryFilter);
 
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
                 signal: experienceAbortController.signal,
             });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            if (!response.ok) throw new Error('Failed to fetch data');
-
-            const experienceData = await response.json();
-
-            if (experienceData.length === 0) {
-                displayExperienceSection({ showEmpty: true });
-            } else {
-                experienceTimeline.innerHTML = '';
-                experienceData.forEach(item => {
-                    experienceTimeline.appendChild(buildExperienceCardElement(item));
-                });
-                displayExperienceSection({ showGrid: true });
-            }
+            const records = await response.json();
+            experienceById = Object.fromEntries(records.map(record => [record.id, record]));
+            experienceTimeline.replaceChildren(...records.map(buildExperienceCardElement));
+            displayExperienceSection({ showGrid: records.length > 0, showEmpty: records.length === 0 });
         } catch (error) {
             if (error.name === 'AbortError') return;
             console.error('Error loading experiences:', error);
@@ -164,53 +231,132 @@
         }
     }
 
-    experienceCategoryFilter.addEventListener('change', function() {
-        fetchExperience(experienceCategoryFilter.value);
-    });
-
-    // Modal
-    function closeExperienceModal() {
-        document.getElementById("add-experience-modal").hidePopover();
+    function apiErrorMessage(data, status) {
+        const messages = Object.values(data).flat().filter(value => typeof value === 'string');
+        return messages.join(' ') || `Request failed (HTTP ${status}).`;
     }
 
+    // Satu fungsi untuk POST / PATCH / DELETE (JSON + token CSRF)
+    async function writeExperience(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
+        return data;
+    }
+
+    // Tambah data
     async function addExperience(event) {
         event.preventDefault();
-
         const submitButton = experienceForm.querySelector('button[type="submit"]');
         submitButton.disabled = true;
 
         try {
-            const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new FormData(experienceForm),
-            });
-            const result = await response.json().catch(() => ({}));
+            const payload = Object.fromEntries(new FormData(experienceForm).entries());
+            delete payload.csrfmiddlewaretoken;
+            // Kolom kosong (misalnya ended_at) tidak dikirim
+            Object.keys(payload).forEach(key => { if (payload[key] === '') delete payload[key]; });
 
-            if (response.ok) {
-                experienceForm.reset();
-                closeExperienceModal();
-                showToast('Success', 'New experience added!', 'success');
-                fetchExperience(experienceCategoryFilter.value);
-            } else {
-                const errorMessages = result.errors
-                    ? Object.values(result.errors).flat().map(error => error.message)
-                    : [result.message || `An error occurred (status ${response.status}).`];
-                showToast('Failed to add experience', errorMessages.join(' '), 'error');
-            }
+            await writeExperience(EXPERIENCE_LIST_ENDPOINT, 'POST', payload);
+            experienceForm.reset();
+            document.getElementById('add-experience-modal').hidePopover();
+            showToast('Success', 'New experience added!', 'success');
+            await fetchExperience(experienceCategoryFilter.value);
         } catch (error) {
-            console.error('Error adding experience:', error);
-            showToast('Failed to add experience', 'Could not connect to the server. Please try again.', 'error');
+            showToast('Failed to add experience', error.message, 'error');
         } finally {
             submitButton.disabled = false;
         }
     }
 
-    if (experienceForm) {
-        experienceForm.addEventListener('submit', addExperience);
+    if (experienceForm) experienceForm.addEventListener('submit', addExperience);
+
+    // Edit data (PATCH), untuk Editor dan pemilik
+    function openEditModal(id) {
+        const record = experienceById[id];
+        if (!record) return;
+        document.getElementById('edit-experience-id').value = record.id;
+        document.getElementById('edit-title').value = record.title;
+        document.getElementById('edit-description').value = record.description;
+        document.getElementById('edit-category').value = record.category;
+        document.getElementById('edit-thumbnail').value = record.thumbnail || '';
+        // datetime-local butuh format YYYY-MM-DDTHH:MM
+        document.getElementById('edit-ended-at').value = record.ended_at ? record.ended_at.slice(0, 16) : '';
+        document.getElementById('edit-experience-modal').showPopover();
     }
 
-    // Start application
+    async function updateExperience(event) {
+        event.preventDefault();
+        const submitButton = editExperienceForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const id = document.getElementById('edit-experience-id').value;
+            const payload = {
+                title: document.getElementById('edit-title').value,
+                description: document.getElementById('edit-description').value,
+                category: document.getElementById('edit-category').value,
+                thumbnail: document.getElementById('edit-thumbnail').value || null,
+                ended_at: document.getElementById('edit-ended-at').value || null,
+            };
+
+            await writeExperience(experienceEndpoint(EXPERIENCE_DETAIL_ENDPOINT, id), 'PATCH', payload);
+            document.getElementById('edit-experience-modal').hidePopover();
+            showToast('Success', 'Experience updated!', 'success');
+            await fetchExperience(experienceCategoryFilter.value);
+        } catch (error) {
+            showToast('Failed to update experience', error.message, 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (editExperienceForm) editExperienceForm.addEventListener('submit', updateExperience);
+
+    // Tombol apresiasi, edit, dan hapus (event delegation)
+    experienceTimeline.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === 'edit') {
+            openEditModal(id);
+            return;
+        }
+        if (action === 'delete' && !window.confirm('Are you sure you want to delete this experience?')) return;
+
+        button.disabled = true;
+        try {
+            if (action === 'appreciate') {
+                await writeExperience(experienceEndpoint(EXPERIENCE_APPRECIATE_ENDPOINT, id), 'POST');
+                showToast('Success', 'Appreciation updated.', 'success');
+            } else {
+                await writeExperience(experienceEndpoint(EXPERIENCE_DETAIL_ENDPOINT, id), 'DELETE');
+                showToast('Success', 'Experience deleted.', 'success');
+            }
+            await fetchExperience(experienceCategoryFilter.value);
+        } catch (error) {
+            showToast('Request failed', error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    experienceCategoryFilter.addEventListener('change', function() {
+        fetchExperience(experienceCategoryFilter.value);
+    });
+
+    // Mulai aplikasi
     fetchExperience(experienceCategoryFilter.value);
     </script>
 {% endblock %}
